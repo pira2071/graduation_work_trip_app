@@ -1,0 +1,69 @@
+# .dockerignore
+# Git
+.git
+.gitignore
+.github
+.gitattributes
+
+# Docker
+.docker
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# Rails
+.bundle
+.env*
+log/*
+tmp/*
+!/log/.keep
+!/tmp/.keep
+storage/*
+!/storage/.keep
+/public/assets
+/public/packs
+/public/packs-test
+
+# Node
+node_modules
+yarn-debug.log*
+yarn-error.log*
+.yarn-integrity
+
+# Development
+.devcontainer
+.vscode
+.idea
+*.rbc
+capybara-*.html
+coverage/
+spec/tmp
+.rspec
+/spec/examples.txt
+.byebug_history
+
+# Credentials
+/config/master.key
+/config/credentials/*.key
+.env*
+
+# OS specific
+.DS_Store
+*.swp
+*~
+
+# Cache
+.sass-cache/
+/public/system
+/public/uploads
+
+# Documentation
+/doc/
+/README.md
+/CHANGELOG.md
+/*.md
+
+# Additional Rails specific
+/vendor/bundle
+.ruby-version
+.ruby-gemset

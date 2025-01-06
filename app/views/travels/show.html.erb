@@ -1,0 +1,38 @@
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to 'Home', root_path %></li>
+      <li class="breadcrumb-item"><%= link_to 'プラン一覧', travels_path %></li>
+      <li class="breadcrumb-item active">コンテンツ</li>
+    </ol>
+  </nav>
+
+  <div class="card mb-4">
+    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+      <span class="text-muted">No Image</span>
+    </div>
+    
+    <div class="card-body">
+      <h5 class="card-title"><%= @travel.title %></h5>
+      <p class="card-text">
+        <%= @travel.start_date.strftime('%Y年%m月%d日') %> 〜 
+        <%= @travel.end_date.strftime('%Y年%m月%d日') %>
+      </p>
+      <p class="card-text">
+        幹事：<%= @travel.user.name %>
+      </p>
+      <p class="card-text">
+        メンバー：<%= @travel.travel_members.where(role: :guest).pluck(:name).join('、') %>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="nav flex-column nav-pills">
+        <%= link_to '旅行スポット登録', new_travel_spot_path(@travel), class: 'nav-link' %>
+        <%= link_to '旅程表', travel_schedules_path(@travel), class: 'nav-link' %>
+      </div>
+    </div>
+  </div>
+</div>

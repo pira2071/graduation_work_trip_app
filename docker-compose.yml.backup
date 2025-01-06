@@ -1,0 +1,28 @@
+version: '3'
+services:
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/travel_app:delegated
+      - bundle_data:/usr/local/bundle:cached
+      - node_modules:/travel_app/node_modules:cached
+      - /travel_app/vendor
+      - /travel_app/tmp
+      - /travel_app/log
+      - /travel_app/.git
+    environment:
+      TZ: Asia/Tokyo
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+    ports:
+      - "3000:3000"
+    tty: true
+    stdin_open: true
+
+volumes:
+  bundle_data:
+  node_modules:

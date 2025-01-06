@@ -1,0 +1,23 @@
+<div class="spot-item card mb-2" data-schedule-id="<%= schedule.id %>">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <div class="spot-name">
+          <%= spot.name %>
+          <span class="badge <%= category_badge_class(spot.category) %>">
+            <%= spot.category %>
+          </span>
+        </div>
+      </div>
+      <%= button_tag type: 'button',
+                    class: 'btn btn-outline-danger btn-sm delete-spot-btn',
+                    data: {
+                      action: "schedule-editor#deleteSpot",
+                      'schedule-editor-spot-id-param': spot.id,
+                      'schedule-editor-schedule-id-param': schedule.id
+                    } do %>
+        <i class="bi bi-trash"></i> 削除
+      <% end %>
+    </div>
+  </div>
+</div>

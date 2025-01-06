@@ -1,0 +1,68 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Import Bootstrap
+@import "bootstrap";
+
+// Common layout
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+// Header styles
+header {
+  .navbar {
+    padding: 1rem;
+    background-color: #f8f9fa !important;
+    
+    .navbar-brand {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .nav-link {
+      color: #333;
+      margin: 0 10px;
+    }
+
+    .dropdown-menu {
+      right: 0;
+      left: auto;
+    }
+  }
+}
+
+// Main content
+main {
+  flex: 1;
+}
+
+// Footer styles
+.footer-bottom {
+  background-color: #f8f9fa;
+  padding: 1rem 0;
+  margin-top: auto;
+
+  .nav-link {
+    color: #333;
+    padding: 0.5rem 1rem;
+    display: inline-block;
+  }
+}
+
+// ドロップダウンメニューの基本スタイル
+.dropdown-menu {
+  display: none;
+  &.show {
+    display: block;
+  }
+}
+
+// Import other styles
+@import "top";
+ 

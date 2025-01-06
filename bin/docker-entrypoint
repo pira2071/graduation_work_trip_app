@@ -1,0 +1,27 @@
+# docker-entrypoint
+#!/bin/bash -e
+
+# Remove a potentially pre-existing server.pid
+rm -f /travel_app/tmp/pids/server.pid
+
+# Enable jemalloc for reduced memory usage and latency
+if [ -z "${LD_PRELOAD+x}" ]; then
+    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+    export LD_PRELOAD
+fi
+
+# Database preparation and migration
+if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+    echo "Preparing database..."
+    ./bin/rails db:prepare
+
+    # Assets precompilation in production
+    if [ "$RAILS_ENV" = "production" ]; then
+        echo "Precompiling assets..."
+        ./bin/rails assets:precompile
+    fi
+fi
+
+# Print startup message
+echo "Starting application..."
+exec "${@}"

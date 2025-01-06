@@ -1,0 +1,41 @@
+<header>
+  <nav class="navbar navbar-expand-lg navigation navbar-light bg-light">
+    <div class="container">
+      <%= link_to "TriPlanner", "/", class: "navbar-brand" %>
+      
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto main-nav align-items-center">
+          <li class="nav-item">
+            <%= link_to "プラン", travels_path, class: "nav-link" %>
+          </li>
+
+          <li class="nav-item">
+            <%= link_to "持物リスト", "#", class: "nav-link" %>
+          </li>
+          
+          <li class="nav-item dropdown" data-controller="dropdown">
+            <button class="nav-link dropdown-toggle" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false">
+              設定
+            </button>
+            <div class="dropdown-menu dropdown-menu-end" data-dropdown-target="menu">
+              <%= link_to "名前", "#", class: "dropdown-item" %>
+              <%= link_to "メールアドレス", "#", class: "dropdown-item" %>
+              <%= link_to "パスワード", "#", class: "dropdown-item" %>
+              <%= link_to "友だち追加", "#", class: "dropdown-item" %>
+              <%= link_to "友だち一覧", "#", class: "dropdown-item" %>
+              <%= link_to "ログアウト", logout_path, data: { turbo_method: :delete }, class: "dropdown-item" %>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

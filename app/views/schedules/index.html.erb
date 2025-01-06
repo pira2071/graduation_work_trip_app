@@ -1,0 +1,32 @@
+<div class="container" 
+     data-controller="schedule-editor"
+     data-schedule-editor-travel-id-value="<%= @travel.id %>"
+     data-schedule-editor-spot-list-outlet=".spots-list">
+  <div class="row">
+    <div class="col-12">  <%# col-md-8 から col-12 に変更 %>
+      <% total_days = (@travel.end_date - @travel.start_date).to_i + 1 %>
+      <% (1..total_days).each do |day| %>
+        <h2 class="mt-4 mb-3"><%= day %>日目</h2>
+        <% Schedule.time_zones.keys.each do |time_zone| %>
+          <div class="card mb-3">
+            <div class="card-header <%= time_zone_color(time_zone) %>">
+              <%= time_zone_label(time_zone) %>
+            </div>
+            <div class="card-body">
+              <div class="spots-list" 
+                   data-schedule-editor-target="spotsList"
+                   data-day="<%= day %>"
+                   data-time-zone="<%= time_zone %>">
+                <% @schedules
+                    .select { |spot| spot.schedule&.day_number == day && spot.schedule&.time_zone == time_zone }
+                    .each do |spot| %>
+                  <%= render 'schedule_item', spot: spot, schedule: spot.schedule if spot.schedule.present? %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

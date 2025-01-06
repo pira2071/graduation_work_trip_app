@@ -1,0 +1,52 @@
+services:
+  rails:
+    build:
+      context: .
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    restart: always
+    user: "${UID:-1000}:${GID:-1000}"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/travel_app:cached
+      - bundle_data:/usr/local/bundle
+      - ./node_modules:/travel_app/node_modules:delegated
+      - ./tmp:/travel_app/tmp:delegated
+      - ./log:/travel_app/log:delegated
+    environment:
+      RAILS_ENV: development
+      TZ: Asia/Tokyo
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    tty: true
+    stdin_open: true
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./public:/travel_app/public:cached
+    ports:
+      - "8080:80"  # 80ポートから8080ポートに変更
+    depends_on:
+      - rails
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  bundle_data:
+  node_modules:

@@ -1,0 +1,121 @@
+// マップ関連のスタイル
+#map {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+// スポット検索フォームのスタイル
+.input-group {
+  .form-control {
+    &::placeholder {
+      color: #999;
+    }
+  }
+}
+
+// スポットリスト関連のスタイル
+.spots-container {
+  max-height: 500px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 0.5rem;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+}
+
+.spots-list {
+  padding: 10px;
+  background: #fff;
+  border-radius: 4px;
+  min-height: 50px;
+
+  .card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .card-body {
+      padding: 0.75rem;
+    }
+  }
+}
+
+// カテゴリーヘッダーのスタイル
+#sightseeing-spots,
+#restaurant-spots,
+#hotel-spots {
+  h5 {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 4px 4px 0 0;
+  }
+}
+
+// バッジのスタイル
+.badge {
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 0.9em;
+}
+
+// スケジュール選択部分のスタイル
+.schedule-selectors {
+  .form-select {
+    flex: 1;
+    font-size: 0.875rem;
+
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+  }
+}
+
+// 保存ボタンのスタイル
+.btn-primary {
+  min-width: 120px;
+  padding: 0.5rem 2rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .spots-container {
+    max-height: 400px;
+  }
+
+  .schedule-selectors {
+    flex-direction: column;
+    gap: 0.5rem !important;
+
+    .form-select {
+      width: 100%;
+    }
+  }
+}

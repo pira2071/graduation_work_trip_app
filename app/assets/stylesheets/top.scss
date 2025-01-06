@@ -1,0 +1,26 @@
+.top-wrapper {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb, #90caf9);
+  height: calc(100vh - 134px);
+  position: relative;
+  
+  .top-inner-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    padding: 0 20px;  // モバイル対応のためのパディング
+
+    h1 {
+      font-size: 3rem;
+      color: #333;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+      margin: 0;
+      
+      @media screen and (max-width: 767px) {
+        font-size: 2.0rem;
+      }
+    }
+  }
+}

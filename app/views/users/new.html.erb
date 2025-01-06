@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-10 col-lg-8 mx-auto">
+      <h1 class="text-center mb-4">新規ユーザー登録</h1>
+      <%= form_with model: @user, local: true do |f| %>
+        <%# エラーメッセージ表示 %>
+        <% if @user.errors.any? %>
+          <div class="alert alert-danger">
+            <ul class="mb-0">
+              <% @user.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= f.label :name, 'お名前', class: 'form-label required' %>
+          <%= f.text_field :name, class: 'form-control', placeholder: '例：山田 太郎' %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :email, 'メールアドレス', class: 'form-label required' %>
+          <%= f.email_field :email, class: 'form-control', placeholder: '例：example@example.com' %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password, 'パスワード', class: 'form-label required' %>
+          <%= f.password_field :password, class: 'form-control' %>
+          <div class="form-text">パスワードは6文字以上で入力してください</div>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password_confirmation, 'パスワード（確認）', class: 'form-label required' %>
+          <%= f.password_field :password_confirmation, class: 'form-control' %>
+        </div>
+
+        <div class="text-center">
+          <%= f.submit '登録', class: 'btn btn-primary btn-lg px-5' %>
+        </div>
+      <% end %>
+
+      <div class='text-center mt-4'>
+        <p class="text-muted">アカウントをお持ちの方は</p>
+        <%= link_to 'ログインページへ', login_path, class: 'btn btn-link' %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 必須マーク用のCSS %>
+<% content_for :css do %>
+  <style>
+    .required:after {
+      content: " *";
+      color: red;
+    }
+  </style>
+<% end %>
