@@ -11,21 +11,29 @@
       <% @travels.each do |travel| %>
         <div class="col-md-3 mb-4">
           <div class="card h-100">
-          <%= link_to travel_path(travel), class: "text-decoration-none text-dark" do %>
-            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
-              <span class="text-muted">No Image</span>
-            </div>
-            <div class="card-body">
-              <h5 class="card-title mb-4"><%= travel.title %></h5>
-            </div>
-          <% end %>
-          <div class="position-absolute bottom-0 end-0 mb-3 me-3">
-            <%= link_to '編集', edit_travel_path(travel), 
-                class: 'btn btn-outline-primary btn-sm me-2' %>
-            <%= link_to '削除', travel_path(travel), 
-                data: { turbo_method: :delete, turbo_confirm: '本当に削除しますか？' },
-                class: 'btn btn-outline-danger btn-sm' %>
-          </div>
+            <%= link_to travel_path(travel), class: "text-decoration-none text-dark" do %>
+              <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                <span class="text-muted">No Image</span>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title mb-4"><%= travel.title %></h5>
+                <p class="card-text">
+                  <small class="text-muted">
+                    幹事：<%= travel.user.name %>
+                    <%= "(あなた)" if travel.user_id == current_user.id %>
+                  </small>
+                </p>
+              </div>
+            <% end %>
+            <% if travel.user_id == current_user.id %>
+              <div class="position-absolute bottom-0 end-0 mb-3 me-3">
+                <%= link_to '編集', edit_travel_path(travel), 
+                    class: 'btn btn-outline-primary btn-sm me-2' %>
+                <%= link_to '削除', travel_path(travel), 
+                    data: { turbo_method: :delete, turbo_confirm: '本当に削除しますか？' },
+                    class: 'btn btn-outline-danger btn-sm' %>
+              </div>
+            <% end %>
           </div>
         </div>
       <% end %>

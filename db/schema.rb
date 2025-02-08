@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_12_113624) do
+ActiveRecord::Schema[7.1].define(version: 2025_01_08_041824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "friendships", force: :cascade do |t|
+    t.bigint "requester_id", null: false
+    t.bigint "receiver_id", null: false
+    t.string "status", default: "pending"
+    t.datetime "accepted_at"
+    t.datetime "rejected_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["receiver_id"], name: "index_friendships_on_receiver_id"
+    t.index ["requester_id", "receiver_id"], name: "index_friendships_on_requester_id_and_receiver_id", unique: true
+    t.index ["requester_id"], name: "index_friendships_on_requester_id"
+  end
 
   create_table "schedules", force: :cascade do |t|
     t.bigint "spot_id", null: false
@@ -69,8 +82,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_12_113624) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["name"], name: "index_users_on_name", unique: true
   end
 
+  add_foreign_key "friendships", "users", column: "receiver_id"
+  add_foreign_key "friendships", "users", column: "requester_id"
   add_foreign_key "schedules", "spots"
   add_foreign_key "spots", "travels"
   add_foreign_key "travel_members", "travels"

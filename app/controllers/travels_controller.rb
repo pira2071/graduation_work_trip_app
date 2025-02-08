@@ -2,66 +2,70 @@ class TravelsController < ApplicationController
   before_action :set_travel, only: %i[show edit update destroy]
 
   def index
-    @travels = current_user.travels.all
+    @travels = current_user.all_travels.includes(:user)
   end
 
-  def show; end
+  def show
+    @travel = Travel.includes(:user, travel_members: :user).find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to travels_path, danger: 'プランが見つかりませんでした'
+  end
 
   def new
     @travel = Travel.new
+    @friends = current_user.friends  # 友達リストを取得
   end
-
+  
+  def edit
+    @travel = current_user.organized_travels.find(params[:id])
+    @friends = current_user.friends  # 友達リストを取得
+  end
+  
   def create
-    @travel = current_user.travels.build(travel_params)
+    @travel = current_user.organized_travels.build(travel_params)
     if @travel.save
       # 作成者をorganizer roleで登録
       @travel.travel_members.create!(user: current_user, role: :organizer)
-
-      # メンバー名を保存
-      if params[:travel][:member_names].present?
-        member_names = params[:travel][:member_names].split('、').map(&:strip)
-        member_names.each do |name|
-          next if name.blank?
-          @travel.travel_members.create(name: name, role: :guest)
+  
+      # 選択されたメンバーを登録
+      if params[:member_ids].present?
+        params[:member_ids].each do |member_id|
+          user = User.find(member_id)
+          @travel.travel_members.create(user: user, role: :guest)
         end
       end
-
+  
       redirect_to travels_path, success: 'プランを作成しました'
     else
+      @friends = current_user.friends
       flash.now[:danger] = 'プランの作成に失敗しました'
       render :new, status: :unprocessable_entity
     end
   end
-
-  def edit
-    @travel = current_user.travels.find(params[:id])
-  end
-
+  
   def update
-    @travel = current_user.travels.find(params[:id])
+    @travel = current_user.organized_travels.find(params[:id])
     if @travel.update(travel_params)
       # メンバーの更新処理
-      if params[:travel][:member_names].present?
-        # 既存のゲストメンバーを削除
-        @travel.travel_members.where(role: :guest).destroy_all
-        
-        # 新しいメンバーを追加
-        member_names = params[:travel][:member_names].split('、').map(&:strip)
-        member_names.each do |name|
-          next if name.blank?
-          @travel.travel_members.create(name: name, role: :guest)
+      @travel.travel_members.where(role: :guest).destroy_all
+      
+      if params[:member_ids].present?
+        params[:member_ids].each do |member_id|
+          user = User.find(member_id)
+          @travel.travel_members.create(user: user, role: :guest)
         end
       end
   
       redirect_to @travel, success: 'プランを更新しました'
     else
+      @friends = current_user.friends
       flash.now[:danger] = 'プランの更新に失敗しました'
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @travel = current_user.travels.find(params[:id])
+    @travel = current_user.organized_travels.find(params[:id])
     @travel.destroy!
     redirect_to travels_path, status: :see_other, success: 'プランを削除しました'
   rescue ActiveRecord::RecordNotFound
@@ -71,7 +75,10 @@ class TravelsController < ApplicationController
   private
 
   def set_travel
-    @travel = current_user.travels.find(params[:id])
+    @travel = Travel.includes(:user, travel_members: :user)
+                   .find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to travels_path, danger: 'プランが見つかりませんでした'
   end
 
   def travel_params

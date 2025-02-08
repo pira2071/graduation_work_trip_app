@@ -41,4 +41,12 @@ Rails.application.routes.draw do
   
   # ルートパス
   root 'static_pages#top'
+
+  resources :friendships, only: [:index, :create] do
+    member do
+      patch :accept
+      patch :reject
+    end
+  end
+  get 'friend_requests', to: 'friendships#requests', as: :friend_requests
 end

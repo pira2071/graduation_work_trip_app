@@ -1,54 +1,69 @@
 <% content_for :head do %>
-  <%= javascript_include_tag "https://maps.googleapis.com/maps/api/js?key=#{ENV['GOOGLE_MAPS_API_KEY']}&libraries=places&callback=initializeSpotsMap", defer: true %>
+  <script>
+    function initializeSpotsMap() {
+      window.googleMapsLoaded = true;
+      window.dispatchEvent(new Event('maps-loaded'));  // イベント名を統一
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GOOGLE_MAPS_API_KEY'] %>&libraries=places&callback=initializeSpotsMap" async defer></script>
 <% end %>
 
 <div class="container" 
      data-controller="spots-registration" 
      data-spots-registration-travel-id-value="<%= @travel.id %>"
      data-spots-registration-total-days-value="<%= @total_days %>">
-  <!-- 検索とボタンのグループ -->
-  <div class="mb-3">
-    <div class="input-group">
-      <input
-        id="pac-input"
-        class="form-control"
-        type="text"
-        placeholder="場所を検索"
-      />
-      <button class="btn btn-success" data-action="spots-registration#registerSpot" data-category="sightseeing">観光登録</button>
-      <button class="btn btn-warning" data-action="spots-registration#registerSpot" data-category="restaurant">食事処登録</button>
-      <button class="btn btn-info" data-action="spots-registration#registerSpot" data-category="hotel">宿泊先登録</button>
+  
+  <!-- 検索エリア -->
+  <div class="search-area mb-4">
+    <div class="d-flex align-items-center">
+      <div class="search-box flex-grow-1 me-3">
+        <input
+          id="pac-input"
+          class="form-control"
+          type="text"
+          placeholder="ここで検索"
+        />
+      </div>
+      <div class="register-buttons">
+        <button class="btn btn-success me-2" data-action="spots-registration#registerSpot" data-category="sightseeing">観光登録</button>
+        <button class="btn btn-warning me-2" data-action="spots-registration#registerSpot" data-category="restaurant">食事処登録</button>
+        <button class="btn btn-info" data-action="spots-registration#registerSpot" data-category="hotel">宿泊先登録</button>
+      </div>
     </div>
   </div>
 
-  <div class="row">
-    <!-- 左側：マップ -->
-    <div class="col-md-7 mb-3">
-      <div id="map" style="height: 400px;" data-spots-registration-target="map"></div>
-    </div>
+  <!-- マップエリア -->
+  <div class="map-area mb-4">
+    <div id="map" style="height: 400px;" data-spots-registration-target="map"></div>
+  </div>
 
-    <!-- 右側：登録済みスポット -->
-    <div class="col-md-5">
-      <div class="spots-container">
-        <div id="sightseeing-spots" class="mb-3">
-          <h5 class="bg-success text-white p-2">観光スポット</h5>
+  <!-- スポットリストエリア -->
+  <div class="spots-area mb-4">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="spot-section">
+          <div class="spot-header bg-success text-white">観光スポット</div>
           <div class="spots-list" data-spots-registration-target="sightseeingList"></div>
         </div>
-        <div id="restaurant-spots" class="mb-3">
-          <h5 class="bg-warning text-white p-2">食事処</h5>
+      </div>
+      <div class="col-md-4">
+        <div class="spot-section">
+          <div class="spot-header bg-warning text-white">食事処</div>
           <div class="spots-list" data-spots-registration-target="restaurantList"></div>
         </div>
-        <div id="hotel-spots" class="mb-3">
-          <h5 class="bg-info text-white p-2">宿泊先</h5>
+      </div>
+      <div class="col-md-4">
+        <div class="spot-section">
+          <div class="spot-header bg-info text-white">宿泊先</div>
           <div class="spots-list" data-spots-registration-target="hotelList"></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- 保存ボタン -->
-    <div class="text-center mt-3">
-      <button data-action="spots-registration#saveSchedules" class="btn btn-primary">保存</button>
-    </div>
+  <!-- 保存ボタン -->
+  <div class="text-center">
+    <button data-action="spots-registration#saveSchedules" class="btn btn-primary px-5">保存</button>
   </div>
 </div>
 
@@ -60,11 +75,3 @@
     },
     style: "display: none;" 
 %>
-
-<script>
-// コールバック関数名を変更
-window.initializeSpotsMap = function() {
-  console.log('Spots map initialization started');
-  window.dispatchEvent(new Event('spots-map-loaded'));
-}
-</script>

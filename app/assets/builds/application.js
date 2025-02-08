@@ -6964,109 +6964,75 @@
 
   // app/javascript/controllers/spots_registration_controller.js
   var spots_registration_controller_default = class extends Controller {
-    connect() {
-      console.log("SpotsRegistrationController connected");
-      this.setupEventListeners();
+    initialize() {
+      this.markers = [];
       this.temporarySpots = {
         sightseeing: [],
         restaurant: [],
         hotel: []
       };
-      this.markers = [];
-      if (window.google && window.google.maps) {
-        delete window.google.maps;
-        delete window.google;
-      }
-      window.removeEventListener("spots-map-loaded", this.initializeMap.bind(this));
-      window.addEventListener("spots-map-loaded", () => {
-        console.log("Spots map loaded event received");
+    }
+    connect() {
+      window.addEventListener("maps-loaded", () => {
         this.initializeMap();
-      });
+      }, { once: true });
     }
     disconnect() {
-      this.cleanupSpots();
-      this.removeEventListeners();
-      if (window.google && window.google.maps) {
-        if (this.autocomplete) {
-          google.maps.event.clearInstanceListeners(this.autocomplete);
-        }
-        if (this.map) {
-          google.maps.event.clearInstanceListeners(this.map);
-        }
-        delete window.google.maps;
-        delete window.google;
+      if (this.map) {
+        google.maps.event.clearInstanceListeners(this.map);
+        this.map = null;
       }
-    }
-    setupEventListeners() {
-      this.boundCleanup = this.cleanupSpots.bind(this);
-      document.addEventListener("turbo:before-visit", this.boundCleanup);
-      document.addEventListener("turbo:before-cache", this.boundCleanup);
-      document.addEventListener("turbo:before-render", this.boundCleanup);
-      window.addEventListener("beforeunload", this.boundCleanup);
-      window.addEventListener("popstate", this.boundCleanup);
-    }
-    removeEventListeners() {
-      document.removeEventListener("turbo:before-visit", this.boundCleanup);
-      document.removeEventListener("turbo:before-cache", this.boundCleanup);
-      document.removeEventListener("turbo:before-render", this.boundCleanup);
-      window.removeEventListener("beforeunload", this.boundCleanup);
-      window.removeEventListener("popstate", this.boundCleanup);
+      this.cleanupMarkers();
     }
     initializeMap() {
-      console.log("Initializing map and autocomplete...");
-      if (typeof google === "undefined") {
-        console.log("Waiting for Google Maps to load...");
-        window.addEventListener("google-maps-loaded", () => this.setupMap());
-        return;
+      const mapOptions = {
+        center: { lat: 35.6812362, lng: 139.7671248 },
+        zoom: 14,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          position: google.maps.ControlPosition.TOP_RIGHT
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_TOP
+        }
+      };
+      this.map = new google.maps.Map(this.mapTarget, mapOptions);
+      this.setupSearchBox();
+      if (this.existingSpotsValue) {
+        this.loadExistingSpots();
       }
-      this.setupMap();
     }
-    setupMap() {
-      console.log("Setting up map and autocomplete...");
-      try {
-        this.map = new google.maps.Map(this.mapTarget, {
-          center: { lat: 35.6812, lng: 139.7671 },
-          zoom: 12
-        });
-        const input = document.getElementById("pac-input");
-        if (!input) {
-          console.error("Search input element not found");
+    setupSearchBox() {
+      const input = document.getElementById("pac-input");
+      const searchBox = new google.maps.places.SearchBox(input);
+      this.map.addListener("bounds_changed", () => {
+        searchBox.setBounds(this.map.getBounds());
+      });
+      searchBox.addListener("places_changed", () => {
+        const places = searchBox.getPlaces();
+        if (places.length === 0)
+          return;
+        const place = places[0];
+        this.selectedPlace = place;
+        if (!place.geometry) {
+          alert("\u9078\u629E\u3055\u308C\u305F\u5834\u6240\u306E\u8A73\u7D30\u304C\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F");
           return;
         }
-        this.autocomplete = new google.maps.places.Autocomplete(input);
-        this.autocomplete.bindTo("bounds", this.map);
-        this.autocomplete.addListener("place_changed", () => {
-          console.log("Place changed event fired");
-          this.handlePlaceSelection();
-        });
-        console.log("Autocomplete initialized successfully");
-        if (this.hasExistingSpotsValue) {
-          this.loadExistingSpots();
+        if (place.geometry.viewport) {
+          this.map.fitBounds(place.geometry.viewport);
+        } else {
+          this.map.setCenter(place.geometry.location);
+          this.map.setZoom(17);
         }
-      } catch (error2) {
-        console.error("Error in setupMap:", error2);
-      }
-    }
-    handlePlaceSelection() {
-      if (this.marker) {
-        this.marker.setMap(null);
-      }
-      const place = this.autocomplete.getPlace();
-      this.selectedPlace = place;
-      if (!place.geometry) {
-        alert("\u9078\u629E\u3055\u308C\u305F\u5834\u6240\u306E\u8A73\u7D30\u304C\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F");
-        return;
-      }
-      if (place.geometry.viewport) {
-        this.map.fitBounds(place.geometry.viewport);
-      } else {
-        this.map.setCenter(place.geometry.location);
-        this.map.setZoom(17);
-      }
-      this.marker = new google.maps.Marker({
-        map: this.map,
-        position: place.geometry.location,
-        title: place.name
+        if (this.temporaryMarker) {
+          this.temporaryMarker.setMap(null);
+        }
+        this.temporaryMarker = new google.maps.Marker({
+          map: this.map,
+          position: place.geometry.location,
+          title: place.name
+        });
       });
     }
     loadExistingSpots() {
@@ -7075,9 +7041,7 @@
           if (parseInt(spot.travel_id) === parseInt(this.travelIdValue)) {
             const category = spot.category;
             this.temporarySpots[category].push(spot);
-            if (this.map) {
-              this.addMarker(spot, category, spot.order_number);
-            }
+            this.addMarker(spot, category, spot.order_number);
           }
         });
         Object.keys(this.temporarySpots).forEach((category) => {
@@ -7104,9 +7068,7 @@
       this.registerSpotWithServer(spotData, category);
     }
     registerSpotWithServer(spotData, category) {
-      console.log("Travel ID:", this.travelIdValue);
       if (!this.travelIdValue) {
-        console.error("Travel ID is missing");
         alert("\u65C5\u884CID\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
         return;
       }
@@ -7128,7 +7090,6 @@
           alert(data.message || "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
         }
       }).catch((error2) => {
-        console.error("Registration error:", error2);
         alert(error2.message);
       });
     }
@@ -7138,8 +7099,9 @@
       this.addMarker(spot, category, spot.order_number);
       document.getElementById("pac-input").value = "";
       this.selectedPlace = null;
-      if (this.marker)
-        this.marker.setMap(null);
+      if (this.temporaryMarker) {
+        this.temporaryMarker.setMap(null);
+      }
       this.updateSpotsOrder(category);
     }
     addMarker(spot, category, orderNumber) {
@@ -7166,6 +7128,19 @@
       });
       this.markers.push(newMarker);
       return newMarker;
+    }
+    cleanupMarkers() {
+      if (this.markers.length > 0) {
+        this.markers.forEach((marker) => {
+          if (marker)
+            marker.setMap(null);
+        });
+        this.markers = [];
+      }
+      if (this.temporaryMarker) {
+        this.temporaryMarker.setMap(null);
+        this.temporaryMarker = null;
+      }
     }
     updateSpotsList(category) {
       const targetMap = {
@@ -7250,7 +7225,6 @@
         }
         window.location.href = `/travels/${this.travelIdValue}`;
       }).catch((error2) => {
-        console.error("Save error:", error2);
         alert(error2.message);
       });
     }
@@ -7272,45 +7246,6 @@
         body: JSON.stringify({ order_number: newOrder })
       });
     }
-    cleanupSpots() {
-      console.log("Cleaning up spots...");
-      if (this.marker) {
-        this.marker.setMap(null);
-      }
-      if (this.markers && this.markers.length > 0) {
-        this.markers.forEach((marker) => {
-          if (marker)
-            marker.setMap(null);
-        });
-        this.markers = [];
-      }
-      if (this.autocomplete) {
-        google.maps.event.clearInstanceListeners(this.autocomplete);
-        this.autocomplete = null;
-      }
-      if (this.map) {
-        google.maps.event.clearInstanceListeners(this.map);
-        this.map = null;
-      }
-      this.temporarySpots = {
-        sightseeing: [],
-        restaurant: [],
-        hotel: []
-      };
-      const input = document.getElementById("pac-input");
-      if (input) {
-        input.value = "";
-      }
-    }
-    cleanupServerData() {
-      fetch(`/travels/${this.travelIdValue}/spots/cleanup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        }
-      }).catch((error2) => console.error("Cleanup error:", error2));
-    }
     getColorClass(category) {
       switch (category) {
         case "sightseeing":
@@ -7328,7 +7263,7 @@
   __publicField(spots_registration_controller_default, "values", {
     travelId: String,
     totalDays: Number,
-    existingSpots: { type: Array, default: [] }
+    existingSpots: Array
   });
 
   // node_modules/sortablejs/modular/sortable.esm.js
@@ -9684,6 +9619,22 @@
     travelId: String
   });
 
+  // app/javascript/controllers/members_controller.js
+  var members_controller_default = class extends Controller {
+    connect() {
+      console.log("Connected!");
+    }
+    toggleAll(event) {
+      const checked = this.selectAllTarget.checked;
+      this.checkboxTargets.forEach((box) => box.checked = checked);
+    }
+    toggleIndividual() {
+      const allChecked = this.checkboxTargets.every((checkbox) => checkbox.checked);
+      this.selectAllTarget.checked = allChecked;
+    }
+  };
+  __publicField(members_controller_default, "targets", ["checkbox", "selectAll"]);
+
   // app/javascript/controllers/index.js
   var application = Application.start();
   var DropdownController = class extends Controller {
@@ -9696,6 +9647,7 @@
   application.register("dropdown", DropdownController);
   application.register("spots-registration", spots_registration_controller_default);
   application.register("schedule-editor", schedule_editor_controller_default);
+  application.register("members", members_controller_default);
 
   // node_modules/bootstrap/dist/js/bootstrap.esm.js
   var bootstrap_esm_exports = {};
@@ -14883,11 +14835,19 @@
     if (token) {
       window.csrfToken = token;
     }
+    if (window.google && window.google.maps) {
+      window.dispatchEvent(new Event("maps-loaded"));
+    }
+  });
+  document.addEventListener("turbo:before-cache", () => {
+    if (window.google && window.google.maps) {
+      delete window.google.maps;
+    }
   });
   window.bootstrap = bootstrap_esm_exports;
-  window.initializeMap = function() {
-    const event = new Event("google-maps-loaded");
-    window.dispatchEvent(event);
+  window.gm_authFailure = () => {
+    console.error("Google Maps authentication failed");
+    alert("Google Maps API\u306E\u8A8D\u8A3C\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002");
   };
 })();
 /*! Bundled license information:

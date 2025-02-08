@@ -26,10 +26,36 @@
         </div>
 
         <div class="mb-3">
-          <%= f.label :member_names, 'メンバー', class: 'form-label' %>
-          <%= f.text_field :member_names, class: 'form-control', 
-              placeholder: '例：山田太郎、佐藤花子、鈴木一郎' %>
-          <div class="form-text">名前を「、」で区切って入力してください</div>
+          <%= f.label :member_list, 'メンバー', class: 'form-label' %>
+          <div class="member-select-container border rounded p-3" data-controller="members">
+            <div class="form-check">
+              <%= check_box_tag 'select_all', '1', false, 
+                  class: 'form-check-input',
+                  id: 'select_all_members',
+                  data: { 
+                    members_target: 'selectAll',
+                    action: 'members#toggleAll'
+                  } %>
+              <%= label_tag 'select_all_members', 'すべて', class: 'form-check-label fw-bold' %>
+            </div>
+            <hr>
+            <div class="member-list">
+              <% @friends.each do |friend| %>
+                <div class="form-check">
+                  <%= check_box_tag 'member_ids[]', 
+                      friend.id, 
+                      @travel.travel_members.where(role: :guest).pluck(:user_id).include?(friend.id),
+                      class: 'form-check-input member-checkbox',
+                      data: { 
+                        members_target: 'checkbox',
+                        action: 'members#toggleIndividual'
+                      } %>
+                  <%= label_tag "member_checkbox_#{friend.id}", friend.name, class: 'form-check-label' %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          <div class="form-text">メンバーを選択してください</div>
         </div>
 
         <div class="text-center">

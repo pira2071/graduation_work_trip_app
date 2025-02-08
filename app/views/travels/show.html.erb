@@ -22,7 +22,7 @@
         幹事：<%= @travel.user.name %>
       </p>
       <p class="card-text">
-        メンバー：<%= @travel.travel_members.where(role: :guest).pluck(:name).join('、') %>
+        メンバー：<%= @travel.travel_members.where(role: :guest).includes(:user).map(&:user).map(&:name).join('、') %>
       </p>
     </div>
   </div>

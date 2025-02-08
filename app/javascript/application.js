@@ -8,18 +8,31 @@ document.addEventListener('turbo:load', () => {
   dropdownTriggers.forEach(trigger => {
     new bootstrap.Dropdown(trigger)
   })
+  
   // CSRFトークン対策
   const token = document.querySelector('meta[name="csrf-token"]')?.content
   if (token) {
     window.csrfToken = token
   }
-})
+
+  // Google Maps APIが読み込まれているか確認
+  if (window.google && window.google.maps) {
+    window.dispatchEvent(new Event('maps-loaded'));
+  }
+});
+
+// ページキャッシュ前の処理
+document.addEventListener('turbo:before-cache', () => {
+  if (window.google && window.google.maps) {
+    delete window.google.maps;
+  }
+});
 
 // グローバルにbootstrapを利用可能に
 window.bootstrap = bootstrap
 
-// Google Maps APIのコールバック関数をグローバルスコープで定義
-window.initializeMap = function() {
-  const event = new Event('google-maps-loaded');
-  window.dispatchEvent(event);
-}
+// Google Maps APIのグローバルエラーハンドリング
+window.gm_authFailure = () => {
+  console.error('Google Maps authentication failed');
+  alert('Google Maps APIの認証に失敗しました。');
+};
