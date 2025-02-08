@@ -9515,6 +9515,9 @@
 
   // app/javascript/controllers/schedule_editor_controller.js
   var schedule_editor_controller_default = class extends Controller {
+    initialize() {
+      this.deletedSpots = /* @__PURE__ */ new Set();
+    }
     connect() {
       console.log("ScheduleEditor connected");
       if (this.hasSpotsListTarget) {
@@ -9525,44 +9528,23 @@
       return this.hasSpotsListTarget && this.spotsListTargets.length > 0;
     }
     deleteSpot(event) {
-      console.log("Delete button clicked", event.currentTarget);
       event.preventDefault();
-      if (!confirm("\u3053\u306E\u30B9\u30DD\u30C3\u30C8\u3092\u524A\u9664\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F")) {
+      if (!confirm("\u3053\u306E\u30B9\u30DD\u30C3\u30C8\u3092\u524A\u9664\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F\n\u203B\u66F4\u65B0\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3059\u308B\u307E\u3067\u306F\u78BA\u5B9A\u3055\u308C\u307E\u305B\u3093")) {
         return;
       }
       const targetButton = event.currentTarget;
-      if (!targetButton) {
-        console.error("Button element not found");
+      const scheduleCard = targetButton.closest(".spot-item");
+      if (!scheduleCard)
         return;
-      }
-      const scheduleCard = targetButton.closest(".card");
-      if (!scheduleCard) {
-        console.error("Schedule card not found");
-        return;
-      }
       const spotId = targetButton.dataset.scheduleEditorSpotIdParam;
       const scheduleId = targetButton.dataset.scheduleEditorScheduleIdParam;
-      console.log("Deleting:", { spotId, scheduleId, element: scheduleCard });
-      fetch(`/travels/${this.travelIdValue}/schedules/delete_spot`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-          spot_id: spotId,
-          schedule_id: scheduleId
-        })
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-        }
-        scheduleCard.remove();
-        this.showSuccessMessage();
-      }).catch((error2) => {
-        console.error("Delete error:", error2);
-        alert(`\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F: ${error2.message}`);
+      this.deletedSpots.add({
+        spotId,
+        scheduleId,
+        element: scheduleCard
       });
+      scheduleCard.style.display = "none";
+      this.showSuccessMessage("\u30B9\u30DD\u30C3\u30C8\u3092\u524A\u9664\u3057\u307E\u3057\u305F\uFF08\u66F4\u65B0\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3067\u78BA\u5B9A\uFF09");
     }
     initializeSortable() {
       if (!this.spotsListTargets || this.spotsListTargets.length === 0) {
@@ -9579,11 +9561,11 @@
         });
       });
     }
-    showSuccessMessage() {
+    showSuccessMessage(message = "") {
       const alert2 = document.createElement("div");
       alert2.className = "alert alert-success alert-dismissible fade show mt-3";
       alert2.innerHTML = `
-      \u30B9\u30DD\u30C3\u30C8\u3092\u524A\u9664\u3057\u307E\u3057\u305F
+      ${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
       const container = document.querySelector(".container");
@@ -9611,6 +9593,50 @@
       }).catch((error2) => {
         console.error("Reorder error:", error2);
         alert("\u4E26\u3073\u9806\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+      });
+    }
+    updateSchedules() {
+      const schedules = [];
+      const deletions = Array.from(this.deletedSpots).map((item) => ({
+        spot_id: item.spotId,
+        schedule_id: item.scheduleId
+      }));
+      this.spotsListTargets.forEach((list) => {
+        const day = list.dataset.day;
+        const timeZone = list.dataset.timeZone;
+        Array.from(list.children).forEach((spotItem, index2) => {
+          const scheduleId = spotItem.dataset.scheduleId;
+          if (scheduleId && !Array.from(this.deletedSpots).some((d) => d.scheduleId === scheduleId)) {
+            schedules.push({
+              schedule_id: scheduleId,
+              day_number: day,
+              time_zone: timeZone,
+              order_number: index2 + 1
+            });
+          }
+        });
+      });
+      this.updateSchedulesWithServer(schedules, deletions);
+    }
+    updateSchedulesWithServer(schedules, deletions) {
+      fetch(`/travels/${this.travelIdValue}/schedules/update_all`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          schedules,
+          deletions
+        })
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error("\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        }
+        window.location.href = `/travels/${this.travelIdValue}`;
+      }).catch((error2) => {
+        console.error("Update error:", error2);
+        alert("\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
       });
     }
   };

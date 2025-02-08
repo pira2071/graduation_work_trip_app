@@ -1,4 +1,3 @@
-// app/javascript/controllers/schedule_editor_controller.js
 import { Controller } from "@hotwired/stimulus"
 import Sortable from "sortablejs"
 
@@ -6,6 +5,10 @@ export default class extends Controller {
   static targets = ["spotsList"]
   static values = {
     travelId: String
+  }
+
+  initialize() {
+    this.deletedSpots = new Set(); // 削除予定のスポットを管理
   }
 
   connect() {
@@ -21,56 +24,30 @@ export default class extends Controller {
   }
 
   deleteSpot(event) {
-    console.log("Delete button clicked", event.currentTarget);
     event.preventDefault();
 
-    if (!confirm('このスポットを削除してもよろしいですか？')) {
+    if (!confirm('このスポットを削除してもよろしいですか？\n※更新ボタンをクリックするまでは確定されません')) {
       return;
     }
 
     const targetButton = event.currentTarget;
-    if (!targetButton) {
-      console.error('Button element not found');
-      return;
-    }
-
-    // まず親の.card要素を探す
-    const scheduleCard = targetButton.closest('.card');
-    if (!scheduleCard) {
-      console.error('Schedule card not found');
-      return;
-    }
+    const scheduleCard = targetButton.closest('.spot-item');
+    if (!scheduleCard) return;
 
     const spotId = targetButton.dataset.scheduleEditorSpotIdParam;
     const scheduleId = targetButton.dataset.scheduleEditorScheduleIdParam;
     
-    console.log('Deleting:', { spotId, scheduleId, element: scheduleCard });
-
-    fetch(`/travels/${this.travelIdValue}/schedules/delete_spot`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-      },
-      body: JSON.stringify({
-        spot_id: spotId,
-        schedule_id: scheduleId
-      })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('削除に失敗しました');
-      }
-      // 要素を画面から削除
-      scheduleCard.remove();
-      
-      // 成功メッセージを表示
-      this.showSuccessMessage();
-    })
-    .catch(error => {
-      console.error('Delete error:', error);
-      alert(`削除に失敗しました: ${error.message}`);
+    // 削除予定リストに追加
+    this.deletedSpots.add({
+      spotId: spotId,
+      scheduleId: scheduleId,
+      element: scheduleCard
     });
+
+    // 見た目上は非表示にする（完全な削除ではない）
+    scheduleCard.style.display = 'none';
+    
+    this.showSuccessMessage('スポットを削除しました（更新ボタンをクリックで確定）');
   }
 
   initializeSortable() {
@@ -90,11 +67,11 @@ export default class extends Controller {
     });
   }
 
-  showSuccessMessage() {
+  showSuccessMessage(message = '') {
     const alert = document.createElement('div');
     alert.className = 'alert alert-success alert-dismissible fade show mt-3';
     alert.innerHTML = `
-      スポットを削除しました
+      ${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
     
@@ -128,6 +105,59 @@ export default class extends Controller {
     .catch(error => {
       console.error('Reorder error:', error);
       alert('並び順の更新に失敗しました');
+    });
+  }
+
+  updateSchedules() {
+    const schedules = [];
+    const deletions = Array.from(this.deletedSpots).map(item => ({
+      spot_id: item.spotId,
+      schedule_id: item.scheduleId
+    }));
+    
+    this.spotsListTargets.forEach(list => {
+      const day = list.dataset.day;
+      const timeZone = list.dataset.timeZone;
+      
+      Array.from(list.children).forEach((spotItem, index) => {
+        const scheduleId = spotItem.dataset.scheduleId;
+        // 削除予定のものは除外
+        if (scheduleId && !Array.from(this.deletedSpots).some(d => d.scheduleId === scheduleId)) {
+          schedules.push({
+            schedule_id: scheduleId,
+            day_number: day,
+            time_zone: timeZone,
+            order_number: index + 1
+          });
+        }
+      });
+    });
+
+    this.updateSchedulesWithServer(schedules, deletions);
+  }
+
+  updateSchedulesWithServer(schedules, deletions) {
+    fetch(`/travels/${this.travelIdValue}/schedules/update_all`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ 
+        schedules: schedules,
+        deletions: deletions 
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('更新に失敗しました');
+      }
+      // プラン詳細画面へ遷移
+      window.location.href = `/travels/${this.travelIdValue}`;
+    })
+    .catch(error => {
+      console.error('Update error:', error);
+      alert('更新に失敗しました: ' + error.message);
     });
   }
 }

@@ -25,6 +25,7 @@ Rails.application.routes.draw do
     # スケジュール関連のルーティング
     resources :schedules, only: %i[index update] do
       collection do
+        patch :update_all
         post :reorder  # 順序の並び替え用
         delete :delete_spot
       end
