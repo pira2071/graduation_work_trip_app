@@ -9,13 +9,14 @@ export default class extends Controller {
 
   initialize() {
     this.deletedSpots = new Set(); // 削除予定のスポットを管理
+    this.reorderedSchedules = new Map(); // 順序変更を一時的に保持
   }
 
   connect() {
     console.log("ScheduleEditor connected");
-    // spotsListTargetsが存在する場合のみSortableを初期化
     if (this.hasSpotsListTarget) {
       this.initializeSortable();
+      this.updateAllSpotNumbers(); // 初期表示時に番号を振る
     }
   }
 
@@ -48,6 +49,9 @@ export default class extends Controller {
     scheduleCard.style.display = 'none';
     
     this.showSuccessMessage('スポットを削除しました（更新ボタンをクリックで確定）');
+
+    // 削除後に番号を振り直す
+    this.updateAllSpotNumbers();
   }
 
   initializeSortable() {
@@ -84,30 +88,49 @@ export default class extends Controller {
     }
   }
 
-  handleDragEnd(event) {
-    const scheduleIds = Array.from(event.to.children).map(item => 
-      item.dataset.scheduleId
-    );
-  
-    // ドラッグ＆ドロップ後の順序を更新
-    this.updateScheduleOrder(scheduleIds);
-  }
-  
-  updateScheduleOrder(scheduleIds) {
-    fetch(`/travels/${this.travelIdValue}/schedules/reorder`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ schedule_ids: scheduleIds })
-    })
-    .catch(error => {
-      console.error('Reorder error:', error);
-      alert('並び順の更新に失敗しました');
+  updateAllSpotNumbers() {
+    let spotNumber = 1;
+    const days = new Set(this.spotsListTargets.map(list => list.dataset.day));
+    const timeZones = ['morning', 'noon', 'night'];
+
+    days.forEach(day => {
+      timeZones.forEach(timeZone => {
+        this.spotsListTargets.forEach(list => {
+          if (list.dataset.day === day && list.dataset.timeZone === timeZone) {
+            Array.from(list.children).forEach(spotItem => {
+              if (spotItem.style.display !== 'none') { // 削除予定のものは除外
+                const numberBadge = spotItem.querySelector('[data-spot-number]');
+                if (numberBadge) {
+                  numberBadge.textContent = spotNumber.toString();
+                  spotNumber++;
+                }
+              }
+            });
+          }
+        });
+      });
     });
   }
 
+  handleDragEnd(event) {
+    const list = event.to;
+    const day = list.dataset.day;
+    const timeZone = list.dataset.timeZone;
+    
+    // 移動したカードの新しい位置情報を保持
+    Array.from(list.children).forEach((item, index) => {
+      const scheduleId = item.dataset.scheduleId;
+      this.reorderedSchedules.set(scheduleId, {
+        day_number: parseInt(day),
+        time_zone: timeZone,
+        order_number: index + 1
+      });
+    });
+
+    // 番号を振り直す（見た目のみ）
+    this.updateAllSpotNumbers();
+  }
+  
   updateSchedules() {
     const schedules = [];
     const deletions = Array.from(this.deletedSpots).map(item => ({
@@ -123,11 +146,13 @@ export default class extends Controller {
         const scheduleId = spotItem.dataset.scheduleId;
         // 削除予定のものは除外
         if (scheduleId && !Array.from(this.deletedSpots).some(d => d.scheduleId === scheduleId)) {
+          // reorderedSchedulesに保存された変更があればそれを使用
+          const reorderedData = this.reorderedSchedules.get(scheduleId);
           schedules.push({
             schedule_id: scheduleId,
-            day_number: day,
-            time_zone: timeZone,
-            order_number: index + 1
+            day_number: reorderedData ? reorderedData.day_number : parseInt(day),
+            time_zone: reorderedData ? reorderedData.time_zone : timeZone,
+            order_number: reorderedData ? reorderedData.order_number : (index + 1)
           });
         }
       });

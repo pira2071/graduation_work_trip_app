@@ -12,17 +12,6 @@ class SchedulesController < ApplicationController
     Rails.logger.debug "Schedules data: #{@schedules.to_json(include: :schedule)}"
   end
 
-  def reorder
-    ActiveRecord::Base.transaction do
-      params[:schedule_ids].each_with_index do |id, index|
-        Schedule.find(id).update!(order_number: index + 1)
-      end
-    end
-    head :ok
-  rescue ActiveRecord::RecordInvalid
-    head :unprocessable_entity
-  end
-
   def delete_spot
     @travel = Travel.find(params[:travel_id])
     spot = @travel.spots.find(params[:spot_id])

@@ -9517,11 +9517,13 @@
   var schedule_editor_controller_default = class extends Controller {
     initialize() {
       this.deletedSpots = /* @__PURE__ */ new Set();
+      this.reorderedSchedules = /* @__PURE__ */ new Map();
     }
     connect() {
       console.log("ScheduleEditor connected");
       if (this.hasSpotsListTarget) {
         this.initializeSortable();
+        this.updateAllSpotNumbers();
       }
     }
     hasListTargets() {
@@ -9545,6 +9547,7 @@
       });
       scheduleCard.style.display = "none";
       this.showSuccessMessage("\u30B9\u30DD\u30C3\u30C8\u3092\u524A\u9664\u3057\u307E\u3057\u305F\uFF08\u66F4\u65B0\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3067\u78BA\u5B9A\uFF09");
+      this.updateAllSpotNumbers();
     }
     initializeSortable() {
       if (!this.spotsListTargets || this.spotsListTargets.length === 0) {
@@ -9576,24 +9579,41 @@
         }, 3e3);
       }
     }
-    handleDragEnd(event) {
-      const scheduleIds = Array.from(event.to.children).map(
-        (item) => item.dataset.scheduleId
-      );
-      this.updateScheduleOrder(scheduleIds);
-    }
-    updateScheduleOrder(scheduleIds) {
-      fetch(`/travels/${this.travelIdValue}/schedules/reorder`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ schedule_ids: scheduleIds })
-      }).catch((error2) => {
-        console.error("Reorder error:", error2);
-        alert("\u4E26\u3073\u9806\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+    updateAllSpotNumbers() {
+      let spotNumber = 1;
+      const days = new Set(this.spotsListTargets.map((list) => list.dataset.day));
+      const timeZones = ["morning", "noon", "night"];
+      days.forEach((day) => {
+        timeZones.forEach((timeZone) => {
+          this.spotsListTargets.forEach((list) => {
+            if (list.dataset.day === day && list.dataset.timeZone === timeZone) {
+              Array.from(list.children).forEach((spotItem) => {
+                if (spotItem.style.display !== "none") {
+                  const numberBadge = spotItem.querySelector("[data-spot-number]");
+                  if (numberBadge) {
+                    numberBadge.textContent = spotNumber.toString();
+                    spotNumber++;
+                  }
+                }
+              });
+            }
+          });
+        });
       });
+    }
+    handleDragEnd(event) {
+      const list = event.to;
+      const day = list.dataset.day;
+      const timeZone = list.dataset.timeZone;
+      Array.from(list.children).forEach((item, index2) => {
+        const scheduleId = item.dataset.scheduleId;
+        this.reorderedSchedules.set(scheduleId, {
+          day_number: parseInt(day),
+          time_zone: timeZone,
+          order_number: index2 + 1
+        });
+      });
+      this.updateAllSpotNumbers();
     }
     updateSchedules() {
       const schedules = [];
@@ -9607,11 +9627,12 @@
         Array.from(list.children).forEach((spotItem, index2) => {
           const scheduleId = spotItem.dataset.scheduleId;
           if (scheduleId && !Array.from(this.deletedSpots).some((d) => d.scheduleId === scheduleId)) {
+            const reorderedData = this.reorderedSchedules.get(scheduleId);
             schedules.push({
               schedule_id: scheduleId,
-              day_number: day,
-              time_zone: timeZone,
-              order_number: index2 + 1
+              day_number: reorderedData ? reorderedData.day_number : parseInt(day),
+              time_zone: reorderedData ? reorderedData.time_zone : timeZone,
+              order_number: reorderedData ? reorderedData.order_number : index2 + 1
             });
           }
         });
