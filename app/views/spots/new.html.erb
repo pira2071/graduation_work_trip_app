@@ -38,7 +38,7 @@
   </div>
 
   <!-- スポットリストエリア -->
-  <div class="spots-area mb-4">
+  <div class="spots-area mb-5">
     <div class="row">
       <div class="col-md-4">
         <div class="spot-section">
@@ -59,6 +59,29 @@
         </div>
       </div>
     </div>
+  </div>
+  <hr class="my-5">
+
+  <!-- 旅程表エリア -->
+  <h2 class="text-center mb-4">旅程表</h2>
+  <div class="schedule-area mb-4">
+    <% (1..@total_days).each do |day| %>
+      <h2 class="mt-4 mb-3"><%= day %>日目</h2>
+      <% Schedule.time_zones.keys.each do |time_zone| %>
+        <div class="card mb-3">
+          <div class="card-header <%= time_zone_color(time_zone) %>">
+            <%= time_zone_label(time_zone) %>
+          </div>
+          <div class="card-body">
+            <div class="schedule-list" 
+                data-spots-registration-target="scheduleList"
+                data-day="<%= day %>"
+                data-time-zone="<%= time_zone %>">
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
   </div>
 
   <!-- 保存ボタン -->

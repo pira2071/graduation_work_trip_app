@@ -95,6 +95,44 @@
   }
 }
 
+// 旅程表エリア
+.schedule-area {
+  margin-top: 2rem;
+
+  .card {
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+
+    .card-header {
+      padding: 0.75rem 1.25rem;
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+  }
+
+  .schedule-list {
+    min-height: 50px;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+}
+
+// 時間帯の背景色
+.bg-light-yellow {
+  background-color: #fff3cd;
+}
+
+.bg-light-orange {
+  background-color: #ffe5d0;
+}
+
+.bg-light-blue {
+  background-color: #d1ecf1;
+}
+
 // レスポンシブ対応
 @media (max-width: 768px) {
   .search-area {

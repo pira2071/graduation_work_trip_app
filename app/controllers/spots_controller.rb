@@ -1,4 +1,6 @@
 class SpotsController < ApplicationController
+  include SchedulesHelper
+  
   def new
     @travel = Travel.find(params[:travel_id])
     @spots = @travel.spots.order(:category, :order_number)
