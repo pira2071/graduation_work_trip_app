@@ -1,13 +1,26 @@
-<div class="spot-item" data-spot-id="<%= spot.id %>">
-  <div class="d-flex justify-content-between align-items-center">
-    <div class="d-flex align-items-center">
-      <span class="badge bg-<%= category_badge_class(spot.category) %> me-2"><%= spot.order_number %></span>
-      <span class="flex-grow-1"><%= spot.name %></span>
+<div class="spot-item card mb-2" 
+     data-spot-id="<%= spot.id %>" 
+     data-category="<%= spot.category %>"
+     data-day="<%= spot.schedule&.day_number %>"
+     data-time-zone="<%= spot.schedule&.time_zone %>">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <span class="spot-number badge bg-<%= category_badge_class(spot.category) %> me-2" data-spot-number></span>
+        <div class="spot-name">
+          <%= spot.name %>
+          <span class="badge <%= category_badge_class(spot.category) %>">
+            <%= spot.category %>  <%# category_displayがうまく動作しない場合はcategoryに変更 %>
+          </span>
+        </div>
+      </div>
+      <button type="button" 
+              class="btn btn-outline-danger btn-sm"
+              data-action="spots-registration#deleteFromList"
+              data-spots-registration-spot-id-param="<%= spot.id %>"
+              data-spots-registration-schedule-id-param="<%= spot.schedule&.id %>">
+        <i class="bi bi-trash"></i> 削除
+      </button>
     </div>
-    <button type="button" 
-            class="btn btn-outline-danger btn-sm"
-            data-action="spots-registration#deleteFromList">
-      <i class="bi bi-trash"></i> 削除
-    </button>
   </div>
 </div>

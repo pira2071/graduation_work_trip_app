@@ -3,7 +3,13 @@ class SpotsController < ApplicationController
   
   def new
     @travel = Travel.find(params[:travel_id])
-    @spots = @travel.spots.order(:category, :order_number)
+    @spots = @travel.spots
+                   .includes(:schedule)  # scheduleを含める
+                   .order(:category, :order_number)
+    @schedules = @travel.spots
+                       .includes(:schedule)
+                       .where.not(schedules: { id: nil })
+                       .order('schedules.day_number ASC, schedules.time_zone ASC, schedules.order_number ASC')
     @total_days = (@travel.end_date - @travel.start_date).to_i + 1
   end
 
@@ -58,32 +64,46 @@ class SpotsController < ApplicationController
   def save_schedules
     @travel = Travel.find(params[:travel_id])
     schedules_params = params.require(:schedules).map do |schedule|
-      schedule.permit(:spot_id, :day_number, :time_zone)
+      schedule.permit(:spot_id, :day_number, :time_zone, :order_number)
     end
   
     begin
-      Spot.transaction do
+      ActiveRecord::Base.transaction do
+        # 既存のスケジュールをクリア
+        @travel.spots.each do |spot|
+          spot.schedule&.destroy
+        end
+  
+        # 新しいスケジュールを保存
         schedules_params.each do |schedule_param|
           spot = @travel.spots.find(schedule_param[:spot_id])
-          
-          # スケジュールを作成または更新
-          if spot.schedule.present?
-            spot.schedule.update!(
-              day_number: schedule_param[:day_number],
-              time_zone: schedule_param[:time_zone]
-            )
-          else
-            spot.create_schedule!(
-              day_number: schedule_param[:day_number],
-              time_zone: schedule_param[:time_zone],
-              order_number: 1  # または適切な順序番号
-            )
-          end
+          spot.create_schedule!(
+            day_number: schedule_param[:day_number],
+            time_zone: schedule_param[:time_zone],
+            order_number: schedule_param[:order_number]
+          )
         end
       end
-      redirect_to travel_path(@travel), notice: 'スケジュールを保存しました'
+  
+      # スケジュールとマーカー情報を含めて返す
+      spots_with_schedules = @travel.spots.includes(:schedule).map do |spot|
+        {
+          id: spot.id,
+          name: spot.name,
+          category: spot.category,
+          lat: spot.lat,
+          lng: spot.lng,
+          schedule: spot.schedule.as_json(only: [:day_number, :time_zone, :order_number])
+        }
+      end
+  
+      render json: { 
+        success: true, 
+        spots: spots_with_schedules,
+        message: 'スケジュールを保存しました'
+      }
     rescue => e
-      Rails.logger.error "Schedule save error: #{e.message}"  # エラーログを追加
+      Rails.logger.error "Schedule save error: #{e.message}"
       render json: { error: e.message }, status: :unprocessable_entity
     end
   end

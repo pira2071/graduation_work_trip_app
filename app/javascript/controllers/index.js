@@ -1,7 +1,6 @@
 import { Application } from "@hotwired/stimulus"
 import { Controller } from "@hotwired/stimulus"
 import SpotsRegistrationController from "./spots_registration_controller"
-import ScheduleEditorController from "./schedule_editor_controller"
 import MembersController from "./members_controller"  // 追加
 
 // Stimulusアプリケーションを開始
@@ -19,7 +18,6 @@ class DropdownController extends Controller {
 
 application.register("dropdown", DropdownController)
 application.register("spots-registration", SpotsRegistrationController)
-application.register("schedule-editor", ScheduleEditorController)
 application.register("members", MembersController)  // 追加
 
 export { application }

@@ -19,24 +19,14 @@ Rails.application.routes.draw do
       end
       member do
         patch :update_order
-        delete :destroy
-      end
-    end
-    
-    # スケジュール関連のルーティング
-    resources :schedules, only: %i[index update] do
-      collection do
-        patch :update_all
-        post :reorder  # 順序の並び替え用
-        delete :delete_spot
       end
     end
 
     # スポット関連のルーティング
     resources :spots, only: %i[new create] do
       collection do
-        post :register       # Google Mapsからのスポット登録用
-        post :update_schedule  # スポットのスケジュール情報更新用
+        post :register
+        post :save_schedules
       end
     end
   end

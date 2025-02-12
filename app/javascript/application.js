@@ -9,22 +9,9 @@ document.addEventListener('turbo:load', () => {
     new bootstrap.Dropdown(trigger)
   })
   
-  // CSRFトークン対策
-  const token = document.querySelector('meta[name="csrf-token"]')?.content
-  if (token) {
-    window.csrfToken = token
-  }
-
   // Google Maps APIが読み込まれているか確認
   if (window.google && window.google.maps) {
     window.dispatchEvent(new Event('maps-loaded'));
-  }
-});
-
-// ページキャッシュ前の処理
-document.addEventListener('turbo:before-cache', () => {
-  if (window.google && window.google.maps) {
-    delete window.google.maps;
   }
 });
 

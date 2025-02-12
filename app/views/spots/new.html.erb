@@ -75,7 +75,21 @@
           <div class="schedule-list" 
               data-spots-registration-target="scheduleList"
               data-day="<%= day %>"
-              data-time-zone="<%= time_zone %>">
+              data-time-zone="<%= time_zone %>"
+              data-schedule-empty="<%= @schedules&.select { |spot| 
+                spot.schedule&.day_number == day && 
+                spot.schedule&.time_zone == time_zone 
+              }.empty? %>">
+              <% @schedules&.select { |spot| 
+                  spot.schedule&.day_number == day && 
+                  spot.schedule&.time_zone == time_zone 
+                }&.sort_by { |spot| spot.schedule&.order_number || Float::INFINITY }&.each do |spot| %>
+                <%= render partial: 'spot', locals: { 
+                  spot: spot, 
+                  schedule: spot.schedule,
+                  show_number: true  # 番号表示フラグを追加
+                } %>
+              <% end %>
           </div>
         </div>
       <% end %>
@@ -91,7 +105,12 @@
 <%= content_tag :div, "", 
     data: {
       spots_registration_existing_spots_value: @spots.to_json(
-        only: [:id, :name, :category, :lat, :lng, :order_number, :day_number, :time_zone]
+        only: [:id, :name, :category, :lat, :lng, :order_number, :travel_id],  # travel_idを追加
+        include: { 
+          schedule: { 
+            only: [:id, :day_number, :time_zone, :order_number]  # schedule.idを追加
+          }
+        }
       )
     },
     style: "display: none;" 

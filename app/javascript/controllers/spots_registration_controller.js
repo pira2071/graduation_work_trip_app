@@ -103,13 +103,18 @@ export default class extends Controller {
         if (parseInt(spot.travel_id) === parseInt(this.travelIdValue)) {
           const category = spot.category;
           this.temporarySpots[category].push(spot);
-          this.addMarker(spot, category, spot.order_number);
+          // マーカーを追加（番号なしで）
+          this.addMarker(spot, category);
         }
       });
-
+  
+      // スポットリストを更新
       Object.keys(this.temporarySpots).forEach(category => {
         this.updateSpotsList(category);
       });
+  
+      // 番号を振り直す（これにより旅程表のスポットのみに番号が付与される）
+      this.updateAllSpotNumbers();
     }
   }
 
@@ -131,12 +136,23 @@ export default class extends Controller {
         sort: false,
         animation: 150,
         ghostClass: 'sortable-ghost',
-        removeCloneOnHide: true,  // 追加：クローンを非表示時に削除
+        removeCloneOnHide: true,
         onClone: (evt) => {
           const item = evt.item;
           const clone = evt.clone;
+          // 全ての必要なデータ属性とクラスを複製
+          clone.className = item.className;
           clone.dataset.spotId = item.dataset.spotId;
           clone.dataset.category = item.closest('.spot-section').dataset.category;
+  
+          // 内部の要素の構造も正しく複製されるようにする
+          const originalButton = item.querySelector('button');
+          if (originalButton) {
+            const clonedButton = clone.querySelector('button');
+            if (clonedButton) {
+              clonedButton.setAttribute('data-action', originalButton.getAttribute('data-action'));
+            }
+          }
         }
       });
     });
@@ -155,18 +171,54 @@ export default class extends Controller {
           const item = evt.item;
           const list = evt.to;
           item.classList.add('schedule-spot-item');
+          
+          // データ属性を追加
           item.dataset.day = list.dataset.day;
           item.dataset.timeZone = list.dataset.timeZone;
+          
+          console.log('Item added to schedule:', item);
           
           // 番号を更新
           this.updateAllSpotNumbers();
         },
         onSort: (evt) => {
-          // ドラッグ&ドロップでの並び替え時に番号を更新
+          console.log('Items sorted');
           this.updateAllSpotNumbers();
         }
       });
     });
+  }
+
+  updateSpotsList(category) {
+    // カテゴリーごとのリストのマッピング
+    const targetMap = {
+      sightseeing: 'sightseeingList',
+      restaurant: 'restaurantList',
+      hotel: 'hotelList'
+    };
+  
+    // 対象のリスト要素を取得
+    const listTarget = this[`${targetMap[category]}Target`];
+    if (!listTarget) {
+      console.error(`Target list for category ${category} not found`);
+      return;
+    }
+  
+    // リストをクリア
+    listTarget.innerHTML = '';
+  
+    // 該当カテゴリーのスポットを追加
+    this.temporarySpots[category]
+      .filter(spot => parseInt(spot.travel_id) === parseInt(this.travelIdValue))
+      .forEach((spot, index) => {
+        const spotItem = document.createElement('div');
+        spotItem.className = 'card mb-2';
+        spotItem.dataset.spotId = spot.id;
+        spotItem.dataset.category = category;
+  
+        spotItem.innerHTML = this.generateSpotItemHtml(spot, index, category);
+        listTarget.appendChild(spotItem);
+      });
   }
 
   // 全てのスポットの番号を更新するメソッド
@@ -175,16 +227,19 @@ export default class extends Controller {
     const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
     const timeZones = ['morning', 'noon', 'night'];
     const spotOrder = new Map(); // スポットIDと番号のマッピング
-
+  
+    console.log('Starting updateAllSpotNumbers...'); // デバッグ用
+  
     // 旅程表中のスポットに番号を振る
     days.forEach(day => {
       timeZones.forEach(timeZone => {
         this.scheduleListTargets.forEach(list => {
           if (parseInt(list.dataset.day) === day && list.dataset.timeZone === timeZone) {
             Array.from(list.children).forEach(spotItem => {
-              const numberBadge = spotItem.querySelector('.badge');
+              const numberBadge = spotItem.querySelector('[data-spot-number]');
               const spotId = spotItem.dataset.spotId;
               if (numberBadge) {
+                console.log(`Updating number for spot ${spotId} to ${spotNumber}`); // デバッグ用
                 numberBadge.textContent = spotNumber.toString();
                 spotOrder.set(spotId, spotNumber);
                 spotNumber++;
@@ -194,8 +249,8 @@ export default class extends Controller {
         });
       });
     });
-
-    // マーカーの番号を更新
+  
+    console.log('Spot order map:', spotOrder); // デバッグ用
     this.updateMarkerNumbers(spotOrder);
   }
 
@@ -308,7 +363,8 @@ export default class extends Controller {
   handleSuccessfulRegistration(spot, category) {
     this.temporarySpots[category].push(spot);
     this.updateSpotsList(category);
-    this.addMarker(spot, category, spot.order_number);
+    // マーカーを追加する際に番号を指定しない
+    this.addMarker(spot, category);  // order_numberパラメータを削除
     
     document.getElementById("pac-input").value = '';
     this.selectedPlace = null;
@@ -319,114 +375,83 @@ export default class extends Controller {
     this.updateSpotsOrder(category);
   }
 
-  addMarker(spot, category, orderNumber) {
+  addMarker(spot, category) {
     const categoryColors = {
-      sightseeing: '#198754',  // 緑色を濃く
-      restaurant: '#ffc107',   // 黄色はそのまま
-      hotel: '#0dcaf0'        // 青色を少し濃く
+      sightseeing: '#198754',
+      restaurant: '#ffc107',
+      hotel: '#0dcaf0'
     };
   
-    // 既存のマーカーがあれば削除
     this.removeMarker(spot.id);
   
-    const newMarker = new google.maps.Marker({
+    const markerOptions = {
       position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
       map: this.map,
       label: {
-        text: '',
+        text: '',  // 初期値は必ず空文字列
         color: 'white',
         fontSize: '14px',
         fontWeight: 'bold'
       },
       icon: {
-        path: google.maps.SymbolPath.MARKER,  // MARKERに変更
+        path: google.maps.SymbolPath.MARKER,
         fillColor: categoryColors[category],
-        fillOpacity: 1.0,  // 不透明度を上げる
+        fillOpacity: 1.0,
         strokeColor: 'white',
         strokeWeight: 2,
-        scale: 30,         // サイズを調整
-        labelOrigin: new google.maps.Point(0, -3)  // ラベルの位置を調整
+        scale: 30,
+        labelOrigin: new google.maps.Point(0, -3)
       }
-    });
+    };
   
-    // マーカーにspotIdを紐付け
+    const newMarker = new google.maps.Marker(markerOptions);
     newMarker.spotId = spot.id;
     this.markers.push(newMarker);
+  
     return newMarker;
   }
 
   removeMarker(spotId) {
+    if (!spotId) return;
+  
+    // 既存のマーカーを検索
     const markerIndex = this.markers.findIndex(marker => 
-      marker.spotId && marker.spotId.toString() === spotId.toString()
+      marker && marker.spotId && marker.spotId.toString() === spotId.toString()
     );
     
+    // マーカーが見つかった場合、削除
     if (markerIndex !== -1) {
-      this.markers[markerIndex].setMap(null);
-      this.markers.splice(markerIndex, 1);
+      const marker = this.markers[markerIndex];
+      if (marker) {
+        marker.setMap(null);  // マップから削除
+      }
+      this.markers.splice(markerIndex, 1);  // 配列から削除
     }
   }
 
   updateMarkerNumbers(spotOrder) {
+    console.log('Updating marker numbers with order:', spotOrder);
+  
+    if (!this.markers || !Array.isArray(this.markers)) {
+      console.error('Markers array is not properly initialized');
+      return;
+    }
+  
     this.markers.forEach(marker => {
-      if (marker.spotId) {
+      if (marker && marker.spotId) {
         const number = spotOrder.get(marker.spotId.toString());
-        if (number !== undefined) {
-          // マーカーの番号を更新
+        try {
           marker.setLabel({
-            text: number.toString(),
-            color: 'white'
+            text: number ? number.toString() : '',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: 'bold'
           });
-        } else {
-          // 旅程表に含まれていないスポットは番号を表示しない
-          marker.setLabel({
-            text: '',
-            color: 'white'
-          });
+        } catch (error) {
+          console.error('Error updating marker label:', error, marker);
         }
       }
     });
-  }
-
-  cleanupMarkers() {
-    if (this.markers.length > 0) {
-      this.markers.forEach(marker => {
-        if (marker) marker.setMap(null);
-      });
-      this.markers = [];
-    }
-    if (this.temporaryMarker) {
-      this.temporaryMarker.setMap(null);
-      this.temporaryMarker = null;
-    }
-  }
-
-  updateSpotsList(category) {
-    const targetMap = {
-      sightseeing: 'sightseeingList',
-      restaurant: 'restaurantList',
-      hotel: 'hotelList'
-    };
-
-    const listElement = this[`${targetMap[category]}Target`];
-    if (!listElement) return;
-
-    listElement.innerHTML = '';
-
-    this.temporarySpots[category]
-      .filter(spot => parseInt(spot.travel_id) === parseInt(this.travelIdValue))
-      .forEach((spot, index) => {
-        const spotItem = document.createElement('div');
-        spotItem.className = 'card mb-2';
-        spotItem.dataset.spotId = spot.id;
-        
-        const dayOptions = Array.from({length: this.totalDaysValue}, (_, i) => {
-          const day = i + 1;
-          return `<option value="${day}" ${spot.day_number === day ? 'selected' : ''}>${day}日目</option>`;
-        }).join('');
-
-        spotItem.innerHTML = this.generateSpotItemHtml(spot, index, category, dayOptions);
-        listElement.appendChild(spotItem);
-      });
   }
 
   generateSpotItemHtml(spot, index, category) {
@@ -434,7 +459,7 @@ export default class extends Controller {
       <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
         <div class="d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center">
-            <span class="badge bg-${this.getColorClass(category)} me-2"></span>
+            <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
             <span class="flex-grow-1">${spot.name}</span>
           </div>
           <button type="button" 
@@ -449,30 +474,26 @@ export default class extends Controller {
 
   saveSchedules() {
     const schedules = [];
-    let hasEmptySchedule = false;
-
-    document.querySelectorAll('.card.mb-2').forEach(spotItem => {
-      const spotId = spotItem.dataset.spotId;
-      const daySelect = spotItem.querySelector('.day-select');
-      const timeSelect = spotItem.querySelector('.time-select');
-
-      if (!daySelect?.value || !timeSelect?.value) {
-        hasEmptySchedule = true;
-        return;
-      }
-
-      schedules.push({
-        spot_id: spotId,
-        day_number: daySelect.value,
-        time_zone: timeSelect.value
+    const scheduledSpots = new Set(); // スケジュール表に配置されたスポットのIDを管理
+  
+    // スケジュール表のスポットを収集
+    this.scheduleListTargets.forEach(list => {
+      const day = parseInt(list.dataset.day);
+      const timeZone = list.dataset.timeZone;
+  
+      Array.from(list.children).forEach((spotItem, index) => {
+        const spotId = spotItem.dataset.spotId;
+        scheduledSpots.add(spotId);
+        schedules.push({
+          spot_id: spotId,
+          day_number: day,
+          time_zone: timeZone,
+          order_number: index + 1
+        });
       });
     });
-
-    if (hasEmptySchedule) {
-      alert('全てのスポットの日程と時間帯を選択してください');
-      return;
-    }
-
+  
+    // スケジュールデータをサーバーに送信
     this.saveSchedulesWithServer(schedules);
   }
 
@@ -483,7 +504,8 @@ export default class extends Controller {
         'Content-Type': 'application/json',
         'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
       },
-      body: JSON.stringify({ schedules: schedules })
+      // スケジュールデータをラップして送信
+      body: JSON.stringify({ schedules: schedules })  // 変更点：schedules キーでラップ
     })
     .then(response => {
       if (!response.ok) {
@@ -491,11 +513,20 @@ export default class extends Controller {
           throw new Error(data.message || 'スケジュールの保存に失敗しました');
         });
       }
-      window.location.href = `/travels/${this.travelIdValue}`;
+      this.showSuccessMessage('旅程表を保存しました');
     })
     .catch(error => {
-      alert(error.message);
+      console.error('Save error:', error);
+      alert('保存に失敗しました: ' + error.message);
     });
+  }
+
+  showSuccessMessage(message = '') {
+    if (message) {
+      alert(message);  // とりあえずalertで表示
+    }
+    // プラン詳細画面へ遷移
+    window.location.href = `/travels/${this.travelIdValue}`;
   }
 
   updateSpotsOrder(category) {
