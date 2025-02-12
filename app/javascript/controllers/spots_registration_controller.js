@@ -174,16 +174,19 @@ export default class extends Controller {
     let spotNumber = 1;
     const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
     const timeZones = ['morning', 'noon', 'night'];
+    const spotOrder = new Map(); // スポットIDと番号のマッピング
 
+    // 旅程表中のスポットに番号を振る
     days.forEach(day => {
       timeZones.forEach(timeZone => {
         this.scheduleListTargets.forEach(list => {
           if (parseInt(list.dataset.day) === day && list.dataset.timeZone === timeZone) {
-            // カードが存在する場合のみ処理
             Array.from(list.children).forEach(spotItem => {
               const numberBadge = spotItem.querySelector('.badge');
+              const spotId = spotItem.dataset.spotId;
               if (numberBadge) {
                 numberBadge.textContent = spotNumber.toString();
+                spotOrder.set(spotId, spotNumber);
                 spotNumber++;
               }
             });
@@ -191,6 +194,9 @@ export default class extends Controller {
         });
       });
     });
+
+    // マーカーの番号を更新
+    this.updateMarkerNumbers(spotOrder);
   }
 
   deleteFromList(event) {
@@ -315,29 +321,36 @@ export default class extends Controller {
 
   addMarker(spot, category, orderNumber) {
     const categoryColors = {
-      sightseeing: '#28a745',
-      restaurant: '#ffc107',
-      hotel: '#17a2b8'
+      sightseeing: '#198754',  // 緑色を濃く
+      restaurant: '#ffc107',   // 黄色はそのまま
+      hotel: '#0dcaf0'        // 青色を少し濃く
     };
+  
+    // 既存のマーカーがあれば削除
+    this.removeMarker(spot.id);
   
     const newMarker = new google.maps.Marker({
       position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
       map: this.map,
       label: {
-        text: orderNumber.toString(),
-        color: 'white'
+        text: '',
+        color: 'white',
+        fontSize: '14px',
+        fontWeight: 'bold'
       },
       icon: {
-        path: google.maps.SymbolPath.CIRCLE,
+        path: google.maps.SymbolPath.MARKER,  // MARKERに変更
         fillColor: categoryColors[category],
-        fillOpacity: 0.8,
+        fillOpacity: 1.0,  // 不透明度を上げる
         strokeColor: 'white',
         strokeWeight: 2,
-        scale: 15
+        scale: 30,         // サイズを調整
+        labelOrigin: new google.maps.Point(0, -3)  // ラベルの位置を調整
       }
     });
   
-    newMarker.spotId = spot.id; // マーカーにspotIdを追加
+    // マーカーにspotIdを紐付け
+    newMarker.spotId = spot.id;
     this.markers.push(newMarker);
     return newMarker;
   }
@@ -351,6 +364,27 @@ export default class extends Controller {
       this.markers[markerIndex].setMap(null);
       this.markers.splice(markerIndex, 1);
     }
+  }
+
+  updateMarkerNumbers(spotOrder) {
+    this.markers.forEach(marker => {
+      if (marker.spotId) {
+        const number = spotOrder.get(marker.spotId.toString());
+        if (number !== undefined) {
+          // マーカーの番号を更新
+          marker.setLabel({
+            text: number.toString(),
+            color: 'white'
+          });
+        } else {
+          // 旅程表に含まれていないスポットは番号を表示しない
+          marker.setLabel({
+            text: '',
+            color: 'white'
+          });
+        }
+      }
+    });
   }
 
   cleanupMarkers() {
