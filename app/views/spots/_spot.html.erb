@@ -1,20 +1,13 @@
 <div class="spot-item" data-spot-id="<%= spot.id %>">
-  <div class="d-flex align-items-center mb-2">
-    <span class="badge bg-<%= category_color(spot.category) %> me-2"><%= spot.order_number %></span>
-    <span class="flex-grow-1"><%= spot.name %></span>
-  </div>
-  <div class="schedule-selectors d-flex gap-2">
-    <select class="form-select form-select-sm day-select" data-spot-id="<%= spot.id %>">
-      <option value="">日付選択</option>
-      <% (1..@travel.end_date - @travel.start_date + 1).each do |day| %>
-        <option value="<%= day %>" <%= 'selected' if spot.day_number == day %>><%= day %>日目</option>
-      <% end %>
-    </select>
-    <select class="form-select form-select-sm time-select" data-spot-id="<%= spot.id %>">
-      <option value="">時間帯選択</option>
-      <option value="morning" <%= 'selected' if spot.time_zone == 'morning' %>>朝</option>
-      <option value="noon" <%= 'selected' if spot.time_zone == 'noon' %>>昼</option>
-      <option value="night" <%= 'selected' if spot.time_zone == 'night' %>>夜</option>
-    </select>
+  <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <span class="badge bg-<%= category_badge_class(spot.category) %> me-2"><%= spot.order_number %></span>
+      <span class="flex-grow-1"><%= spot.name %></span>
+    </div>
+    <button type="button" 
+            class="btn btn-outline-danger btn-sm"
+            data-action="spots-registration#deleteFromList">
+      <i class="bi bi-trash"></i> 削除
+    </button>
   </div>
 </div>

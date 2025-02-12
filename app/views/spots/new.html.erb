@@ -41,19 +41,19 @@
   <div class="spots-area mb-5">
     <div class="row">
       <div class="col-md-4">
-        <div class="spot-section">
+        <div class="spot-section" data-category="sightseeing">
           <div class="spot-header bg-success text-white">観光スポット</div>
           <div class="spots-list" data-spots-registration-target="sightseeingList"></div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="spot-section">
+        <div class="spot-section" data-category="restaurant">
           <div class="spot-header bg-warning text-white">食事処</div>
           <div class="spots-list" data-spots-registration-target="restaurantList"></div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="spot-section">
+        <div class="spot-section" data-category="hotel">
           <div class="spot-header bg-info text-white">宿泊先</div>
           <div class="spots-list" data-spots-registration-target="hotelList"></div>
         </div>
@@ -72,12 +72,10 @@
           <div class="card-header <%= time_zone_color(time_zone) %>">
             <%= time_zone_label(time_zone) %>
           </div>
-          <div class="card-body">
-            <div class="schedule-list" 
-                data-spots-registration-target="scheduleList"
-                data-day="<%= day %>"
-                data-time-zone="<%= time_zone %>">
-            </div>
+          <div class="schedule-list" 
+              data-spots-registration-target="scheduleList"
+              data-day="<%= day %>"
+              data-time-zone="<%= time_zone %>">
           </div>
         </div>
       <% end %>

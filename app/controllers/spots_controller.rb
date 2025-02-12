@@ -97,6 +97,18 @@ class SpotsController < ApplicationController
     end
   end
 
+  def destroy
+    @spot = Spot.find(params[:id])
+    if @spot.destroy
+      head :ok
+    else
+      head :unprocessable_entity
+    end
+  rescue => e
+    Rails.logger.error "Spot deletion error: #{e.message}"
+    head :unprocessable_entity
+  end
+
   private
 
   def spot_params

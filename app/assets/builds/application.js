@@ -6962,310 +6962,6 @@
   Controller.outlets = [];
   Controller.values = {};
 
-  // app/javascript/controllers/spots_registration_controller.js
-  var spots_registration_controller_default = class extends Controller {
-    initialize() {
-      this.markers = [];
-      this.temporarySpots = {
-        sightseeing: [],
-        restaurant: [],
-        hotel: []
-      };
-    }
-    connect() {
-      window.addEventListener("maps-loaded", () => {
-        this.initializeMap();
-      }, { once: true });
-    }
-    disconnect() {
-      if (this.map) {
-        google.maps.event.clearInstanceListeners(this.map);
-        this.map = null;
-      }
-      this.cleanupMarkers();
-    }
-    initializeMap() {
-      const mapOptions = {
-        center: { lat: 35.6812362, lng: 139.7671248 },
-        zoom: 14,
-        mapTypeControl: true,
-        mapTypeControlOptions: {
-          position: google.maps.ControlPosition.TOP_RIGHT
-        },
-        fullscreenControl: true,
-        fullscreenControlOptions: {
-          position: google.maps.ControlPosition.RIGHT_TOP
-        }
-      };
-      this.map = new google.maps.Map(this.mapTarget, mapOptions);
-      this.setupSearchBox();
-      if (this.existingSpotsValue) {
-        this.loadExistingSpots();
-      }
-    }
-    setupSearchBox() {
-      const input = document.getElementById("pac-input");
-      const searchBox = new google.maps.places.SearchBox(input);
-      this.map.addListener("bounds_changed", () => {
-        searchBox.setBounds(this.map.getBounds());
-      });
-      searchBox.addListener("places_changed", () => {
-        const places = searchBox.getPlaces();
-        if (places.length === 0)
-          return;
-        const place = places[0];
-        this.selectedPlace = place;
-        if (!place.geometry) {
-          alert("\u9078\u629E\u3055\u308C\u305F\u5834\u6240\u306E\u8A73\u7D30\u304C\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F");
-          return;
-        }
-        if (place.geometry.viewport) {
-          this.map.fitBounds(place.geometry.viewport);
-        } else {
-          this.map.setCenter(place.geometry.location);
-          this.map.setZoom(17);
-        }
-        if (this.temporaryMarker) {
-          this.temporaryMarker.setMap(null);
-        }
-        this.temporaryMarker = new google.maps.Marker({
-          map: this.map,
-          position: place.geometry.location,
-          title: place.name
-        });
-      });
-    }
-    loadExistingSpots() {
-      if (this.hasExistingSpotsValue) {
-        this.existingSpotsValue.forEach((spot) => {
-          if (parseInt(spot.travel_id) === parseInt(this.travelIdValue)) {
-            const category = spot.category;
-            this.temporarySpots[category].push(spot);
-            this.addMarker(spot, category, spot.order_number);
-          }
-        });
-        Object.keys(this.temporarySpots).forEach((category) => {
-          this.updateSpotsList(category);
-        });
-      }
-    }
-    registerSpot(event) {
-      const category = event.currentTarget.dataset.category;
-      if (!this.selectedPlace) {
-        alert("\u5834\u6240\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
-        return;
-      }
-      const orderNumber = this.temporarySpots[category].length + 1;
-      const spotData = {
-        spot: {
-          name: this.selectedPlace.name,
-          category,
-          lat: this.selectedPlace.geometry.location.lat(),
-          lng: this.selectedPlace.geometry.location.lng(),
-          order_number: orderNumber
-        }
-      };
-      this.registerSpotWithServer(spotData, category);
-    }
-    registerSpotWithServer(spotData, category) {
-      if (!this.travelIdValue) {
-        alert("\u65C5\u884CID\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
-        return;
-      }
-      fetch(`/travels/${this.travelIdValue}/spots/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify(spotData)
-      }).then((response) => {
-        if (!response.ok)
-          throw new Error("\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-        return response.json();
-      }).then((data) => {
-        if (data.success) {
-          this.handleSuccessfulRegistration(data.spot, category);
-        } else {
-          alert(data.message || "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-        }
-      }).catch((error2) => {
-        alert(error2.message);
-      });
-    }
-    handleSuccessfulRegistration(spot, category) {
-      this.temporarySpots[category].push(spot);
-      this.updateSpotsList(category);
-      this.addMarker(spot, category, spot.order_number);
-      document.getElementById("pac-input").value = "";
-      this.selectedPlace = null;
-      if (this.temporaryMarker) {
-        this.temporaryMarker.setMap(null);
-      }
-      this.updateSpotsOrder(category);
-    }
-    addMarker(spot, category, orderNumber) {
-      const categoryColors = {
-        sightseeing: "#28a745",
-        restaurant: "#ffc107",
-        hotel: "#17a2b8"
-      };
-      const newMarker = new google.maps.Marker({
-        position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
-        map: this.map,
-        label: {
-          text: orderNumber.toString(),
-          color: "white"
-        },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: categoryColors[category],
-          fillOpacity: 0.8,
-          strokeColor: "white",
-          strokeWeight: 2,
-          scale: 15
-        }
-      });
-      this.markers.push(newMarker);
-      return newMarker;
-    }
-    cleanupMarkers() {
-      if (this.markers.length > 0) {
-        this.markers.forEach((marker) => {
-          if (marker)
-            marker.setMap(null);
-        });
-        this.markers = [];
-      }
-      if (this.temporaryMarker) {
-        this.temporaryMarker.setMap(null);
-        this.temporaryMarker = null;
-      }
-    }
-    updateSpotsList(category) {
-      const targetMap = {
-        sightseeing: "sightseeingList",
-        restaurant: "restaurantList",
-        hotel: "hotelList"
-      };
-      const listElement = this[`${targetMap[category]}Target`];
-      if (!listElement)
-        return;
-      listElement.innerHTML = "";
-      this.temporarySpots[category].filter((spot) => parseInt(spot.travel_id) === parseInt(this.travelIdValue)).forEach((spot, index2) => {
-        const spotItem = document.createElement("div");
-        spotItem.className = "card mb-2";
-        spotItem.dataset.spotId = spot.id;
-        const dayOptions = Array.from({ length: this.totalDaysValue }, (_, i) => {
-          const day = i + 1;
-          return `<option value="${day}" ${spot.day_number === day ? "selected" : ""}>${day}\u65E5\u76EE</option>`;
-        }).join("");
-        spotItem.innerHTML = this.generateSpotItemHtml(spot, index2, category, dayOptions);
-        listElement.appendChild(spotItem);
-      });
-    }
-    generateSpotItemHtml(spot, index2, category, dayOptions) {
-      return `
-      <div class="card-body">
-        <div class="d-flex align-items-center mb-2">
-          <span class="badge bg-${this.getColorClass(category)} me-2">${index2 + 1}</span>
-          <span class="flex-grow-1">${spot.name}</span>
-        </div>
-        <div class="schedule-selectors d-flex gap-2">
-          <select class="form-select form-select-sm day-select" data-spot-id="${spot.id}">
-            <option value="">\u65E5\u4ED8\u9078\u629E</option>
-            ${dayOptions}
-          </select>
-          <select class="form-select form-select-sm time-select" data-spot-id="${spot.id}">
-            <option value="">\u6642\u9593\u5E2F\u9078\u629E</option>
-            <option value="morning" ${spot.time_zone === "morning" ? "selected" : ""}>\u671D</option>
-            <option value="noon" ${spot.time_zone === "noon" ? "selected" : ""}>\u663C</option>
-            <option value="night" ${spot.time_zone === "night" ? "selected" : ""}>\u591C</option>
-          </select>
-        </div>
-      </div>
-    `;
-    }
-    saveSchedules() {
-      const schedules = [];
-      let hasEmptySchedule = false;
-      document.querySelectorAll(".card.mb-2").forEach((spotItem) => {
-        const spotId = spotItem.dataset.spotId;
-        const daySelect = spotItem.querySelector(".day-select");
-        const timeSelect = spotItem.querySelector(".time-select");
-        if (!daySelect?.value || !timeSelect?.value) {
-          hasEmptySchedule = true;
-          return;
-        }
-        schedules.push({
-          spot_id: spotId,
-          day_number: daySelect.value,
-          time_zone: timeSelect.value
-        });
-      });
-      if (hasEmptySchedule) {
-        alert("\u5168\u3066\u306E\u30B9\u30DD\u30C3\u30C8\u306E\u65E5\u7A0B\u3068\u6642\u9593\u5E2F\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
-        return;
-      }
-      this.saveSchedulesWithServer(schedules);
-    }
-    saveSchedulesWithServer(schedules) {
-      fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ schedules })
-      }).then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(data.message || "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u306E\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-          });
-        }
-        window.location.href = `/travels/${this.travelIdValue}`;
-      }).catch((error2) => {
-        alert(error2.message);
-      });
-    }
-    updateSpotsOrder(category) {
-      const spots = this.temporarySpots[category];
-      spots.forEach((spot, index2) => {
-        if (spot.order_number !== index2 + 1) {
-          this.updateSpotOrderWithServer(spot.id, index2 + 1);
-        }
-      });
-    }
-    updateSpotOrderWithServer(spotId, newOrder) {
-      fetch(`/travels/${this.travelIdValue}/spots/${spotId}/update_order`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ order_number: newOrder })
-      });
-    }
-    getColorClass(category) {
-      switch (category) {
-        case "sightseeing":
-          return "success";
-        case "restaurant":
-          return "warning";
-        case "hotel":
-          return "info";
-        default:
-          return "secondary";
-      }
-    }
-  };
-  __publicField(spots_registration_controller_default, "targets", ["map", "sightseeingList", "restaurantList", "hotelList"]);
-  __publicField(spots_registration_controller_default, "values", {
-    travelId: String,
-    totalDays: Number,
-    existingSpots: Array
-  });
-
   // node_modules/sortablejs/modular/sortable.esm.js
   function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
@@ -9512,6 +9208,425 @@
   Sortable.mount(new AutoScrollPlugin());
   Sortable.mount(Remove, Revert);
   var sortable_esm_default = Sortable;
+
+  // app/javascript/controllers/spots_registration_controller.js
+  var spots_registration_controller_default = class extends Controller {
+    initialize() {
+      this.markers = [];
+      this.temporarySpots = {
+        sightseeing: [],
+        restaurant: [],
+        hotel: []
+      };
+    }
+    connect() {
+      window.addEventListener("maps-loaded", () => {
+        this.initializeMap();
+      }, { once: true });
+      this.initializeDragAndDrop();
+    }
+    disconnect() {
+      if (this.map) {
+        google.maps.event.clearInstanceListeners(this.map);
+        this.map = null;
+      }
+      this.cleanupMarkers();
+    }
+    initializeMap() {
+      const mapOptions = {
+        center: { lat: 35.6812362, lng: 139.7671248 },
+        zoom: 14,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          position: google.maps.ControlPosition.TOP_RIGHT
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_TOP
+        }
+      };
+      this.map = new google.maps.Map(this.mapTarget, mapOptions);
+      this.setupSearchBox();
+      if (this.existingSpotsValue) {
+        this.loadExistingSpots();
+      }
+    }
+    setupSearchBox() {
+      const input = document.getElementById("pac-input");
+      const searchBox = new google.maps.places.SearchBox(input);
+      this.map.addListener("bounds_changed", () => {
+        searchBox.setBounds(this.map.getBounds());
+      });
+      searchBox.addListener("places_changed", () => {
+        const places = searchBox.getPlaces();
+        if (places.length === 0)
+          return;
+        const place = places[0];
+        this.selectedPlace = place;
+        if (!place.geometry) {
+          alert("\u9078\u629E\u3055\u308C\u305F\u5834\u6240\u306E\u8A73\u7D30\u304C\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F");
+          return;
+        }
+        if (place.geometry.viewport) {
+          this.map.fitBounds(place.geometry.viewport);
+        } else {
+          this.map.setCenter(place.geometry.location);
+          this.map.setZoom(17);
+        }
+        if (this.temporaryMarker) {
+          this.temporaryMarker.setMap(null);
+        }
+        this.temporaryMarker = new google.maps.Marker({
+          map: this.map,
+          position: place.geometry.location,
+          title: place.name
+        });
+      });
+    }
+    loadExistingSpots() {
+      if (this.hasExistingSpotsValue) {
+        this.existingSpotsValue.forEach((spot) => {
+          if (parseInt(spot.travel_id) === parseInt(this.travelIdValue)) {
+            const category = spot.category;
+            this.temporarySpots[category].push(spot);
+            this.addMarker(spot, category, spot.order_number);
+          }
+        });
+        Object.keys(this.temporarySpots).forEach((category) => {
+          this.updateSpotsList(category);
+        });
+      }
+    }
+    initializeDragAndDrop() {
+      const listTargets = [
+        this.sightseeingListTarget,
+        this.restaurantListTarget,
+        this.hotelListTarget
+      ];
+      listTargets.forEach((list) => {
+        new sortable_esm_default(list, {
+          group: {
+            name: "spots",
+            pull: "clone",
+            put: false
+          },
+          sort: false,
+          animation: 150,
+          ghostClass: "sortable-ghost",
+          removeCloneOnHide: true,
+          // 追加：クローンを非表示時に削除
+          onClone: (evt) => {
+            const item = evt.item;
+            const clone2 = evt.clone;
+            clone2.dataset.spotId = item.dataset.spotId;
+            clone2.dataset.category = item.closest(".spot-section").dataset.category;
+          }
+        });
+      });
+      this.scheduleListTargets.forEach((list) => {
+        new sortable_esm_default(list, {
+          group: {
+            name: "spots",
+            pull: true,
+            put: true
+          },
+          animation: 150,
+          ghostClass: "sortable-ghost",
+          onAdd: (evt) => {
+            const item = evt.item;
+            const list2 = evt.to;
+            item.classList.add("schedule-spot-item");
+            item.dataset.day = list2.dataset.day;
+            item.dataset.timeZone = list2.dataset.timeZone;
+            this.updateAllSpotNumbers();
+          },
+          onSort: (evt) => {
+            this.updateAllSpotNumbers();
+          }
+        });
+      });
+    }
+    // 全てのスポットの番号を更新するメソッド
+    updateAllSpotNumbers() {
+      let spotNumber = 1;
+      const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
+      const timeZones = ["morning", "noon", "night"];
+      days.forEach((day) => {
+        timeZones.forEach((timeZone) => {
+          this.scheduleListTargets.forEach((list) => {
+            if (parseInt(list.dataset.day) === day && list.dataset.timeZone === timeZone) {
+              Array.from(list.children).forEach((spotItem) => {
+                const numberBadge = spotItem.querySelector(".badge");
+                if (numberBadge) {
+                  numberBadge.textContent = spotNumber.toString();
+                  spotNumber++;
+                }
+              });
+            }
+          });
+        });
+      });
+    }
+    deleteFromList(event) {
+      const item = event.target.closest(".spot-item");
+      if (!item || !confirm("\u3053\u306E\u30B9\u30DD\u30C3\u30C8\u3092\u524A\u9664\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F")) {
+        return;
+      }
+      const spotId = item.dataset.spotId;
+      const category = item.dataset.category;
+      const parentList = item.closest(".spots-list, .schedule-list");
+      document.querySelectorAll(`.spot-item[data-spot-id="${spotId}"]`).forEach((card) => {
+        const cardList = card.closest(".spots-list, .schedule-list");
+        card.remove();
+        if (cardList && cardList.children.length === 0) {
+          cardList.style.padding = "0";
+          cardList.style.minHeight = "0";
+          cardList.style.border = "none";
+        }
+      });
+      if (category && this.temporarySpots[category]) {
+        this.temporarySpots[category] = this.temporarySpots[category].filter(
+          (spot) => spot.id.toString() !== spotId.toString()
+        );
+      }
+      this.updateAllSpotNumbers();
+      fetch(`/travels/${this.travelIdValue}/spots/${spotId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        }
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        }
+        this.removeMarker(spotId);
+      }).catch((error2) => {
+        console.error("Delete error:", error2);
+        alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+      });
+    }
+    registerSpot(event) {
+      const category = event.currentTarget.dataset.category;
+      if (!this.selectedPlace) {
+        alert("\u5834\u6240\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
+        return;
+      }
+      const orderNumber = this.temporarySpots[category].length + 1;
+      const spotData = {
+        spot: {
+          name: this.selectedPlace.name,
+          category,
+          lat: this.selectedPlace.geometry.location.lat(),
+          lng: this.selectedPlace.geometry.location.lng(),
+          order_number: orderNumber
+        }
+      };
+      this.registerSpotWithServer(spotData, category);
+    }
+    registerSpotWithServer(spotData, category) {
+      if (!this.travelIdValue) {
+        alert("\u65C5\u884CID\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+        return;
+      }
+      fetch(`/travels/${this.travelIdValue}/spots/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify(spotData)
+      }).then((response) => {
+        if (!response.ok)
+          throw new Error("\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        return response.json();
+      }).then((data) => {
+        if (data.success) {
+          this.handleSuccessfulRegistration(data.spot, category);
+        } else {
+          alert(data.message || "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        }
+      }).catch((error2) => {
+        alert(error2.message);
+      });
+    }
+    handleSuccessfulRegistration(spot, category) {
+      this.temporarySpots[category].push(spot);
+      this.updateSpotsList(category);
+      this.addMarker(spot, category, spot.order_number);
+      document.getElementById("pac-input").value = "";
+      this.selectedPlace = null;
+      if (this.temporaryMarker) {
+        this.temporaryMarker.setMap(null);
+      }
+      this.updateSpotsOrder(category);
+    }
+    addMarker(spot, category, orderNumber) {
+      const categoryColors = {
+        sightseeing: "#28a745",
+        restaurant: "#ffc107",
+        hotel: "#17a2b8"
+      };
+      const newMarker = new google.maps.Marker({
+        position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
+        map: this.map,
+        label: {
+          text: orderNumber.toString(),
+          color: "white"
+        },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: categoryColors[category],
+          fillOpacity: 0.8,
+          strokeColor: "white",
+          strokeWeight: 2,
+          scale: 15
+        }
+      });
+      newMarker.spotId = spot.id;
+      this.markers.push(newMarker);
+      return newMarker;
+    }
+    removeMarker(spotId) {
+      const markerIndex = this.markers.findIndex(
+        (marker) => marker.spotId && marker.spotId.toString() === spotId.toString()
+      );
+      if (markerIndex !== -1) {
+        this.markers[markerIndex].setMap(null);
+        this.markers.splice(markerIndex, 1);
+      }
+    }
+    cleanupMarkers() {
+      if (this.markers.length > 0) {
+        this.markers.forEach((marker) => {
+          if (marker)
+            marker.setMap(null);
+        });
+        this.markers = [];
+      }
+      if (this.temporaryMarker) {
+        this.temporaryMarker.setMap(null);
+        this.temporaryMarker = null;
+      }
+    }
+    updateSpotsList(category) {
+      const targetMap = {
+        sightseeing: "sightseeingList",
+        restaurant: "restaurantList",
+        hotel: "hotelList"
+      };
+      const listElement = this[`${targetMap[category]}Target`];
+      if (!listElement)
+        return;
+      listElement.innerHTML = "";
+      this.temporarySpots[category].filter((spot) => parseInt(spot.travel_id) === parseInt(this.travelIdValue)).forEach((spot, index2) => {
+        const spotItem = document.createElement("div");
+        spotItem.className = "card mb-2";
+        spotItem.dataset.spotId = spot.id;
+        const dayOptions = Array.from({ length: this.totalDaysValue }, (_, i) => {
+          const day = i + 1;
+          return `<option value="${day}" ${spot.day_number === day ? "selected" : ""}>${day}\u65E5\u76EE</option>`;
+        }).join("");
+        spotItem.innerHTML = this.generateSpotItemHtml(spot, index2, category, dayOptions);
+        listElement.appendChild(spotItem);
+      });
+    }
+    generateSpotItemHtml(spot, index2, category) {
+      return `
+      <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <span class="badge bg-${this.getColorClass(category)} me-2"></span>
+            <span class="flex-grow-1">${spot.name}</span>
+          </div>
+          <button type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  data-action="spots-registration#deleteFromList">
+            <i class="bi bi-trash"></i> \u524A\u9664
+          </button>
+        </div>
+      </div>
+    `;
+    }
+    saveSchedules() {
+      const schedules = [];
+      let hasEmptySchedule = false;
+      document.querySelectorAll(".card.mb-2").forEach((spotItem) => {
+        const spotId = spotItem.dataset.spotId;
+        const daySelect = spotItem.querySelector(".day-select");
+        const timeSelect = spotItem.querySelector(".time-select");
+        if (!daySelect?.value || !timeSelect?.value) {
+          hasEmptySchedule = true;
+          return;
+        }
+        schedules.push({
+          spot_id: spotId,
+          day_number: daySelect.value,
+          time_zone: timeSelect.value
+        });
+      });
+      if (hasEmptySchedule) {
+        alert("\u5168\u3066\u306E\u30B9\u30DD\u30C3\u30C8\u306E\u65E5\u7A0B\u3068\u6642\u9593\u5E2F\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
+        return;
+      }
+      this.saveSchedulesWithServer(schedules);
+    }
+    saveSchedulesWithServer(schedules) {
+      fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ schedules })
+      }).then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.message || "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u306E\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+          });
+        }
+        window.location.href = `/travels/${this.travelIdValue}`;
+      }).catch((error2) => {
+        alert(error2.message);
+      });
+    }
+    updateSpotsOrder(category) {
+      const spots = this.temporarySpots[category];
+      spots.forEach((spot, index2) => {
+        if (spot.order_number !== index2 + 1) {
+          this.updateSpotOrderWithServer(spot.id, index2 + 1);
+        }
+      });
+    }
+    updateSpotOrderWithServer(spotId, newOrder) {
+      fetch(`/travels/${this.travelIdValue}/spots/${spotId}/update_order`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ order_number: newOrder })
+      });
+    }
+    getColorClass(category) {
+      switch (category) {
+        case "sightseeing":
+          return "success";
+        case "restaurant":
+          return "warning";
+        case "hotel":
+          return "info";
+        default:
+          return "secondary";
+      }
+    }
+  };
+  __publicField(spots_registration_controller_default, "targets", ["map", "sightseeingList", "restaurantList", "hotelList", "scheduleList"]);
+  __publicField(spots_registration_controller_default, "values", {
+    travelId: String,
+    totalDays: Number,
+    existingSpots: Array
+  });
 
   // app/javascript/controllers/schedule_editor_controller.js
   var schedule_editor_controller_default = class extends Controller {

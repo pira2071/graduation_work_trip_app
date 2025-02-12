@@ -1,7 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
+import Sortable from 'sortablejs'
 
 export default class extends Controller {
-  static targets = ["map", "sightseeingList", "restaurantList", "hotelList"]
+  static targets = ["map", "sightseeingList", "restaurantList", "hotelList", "scheduleList"]
   static values = {
     travelId: String,
     totalDays: Number,
@@ -21,6 +22,8 @@ export default class extends Controller {
     window.addEventListener('maps-loaded', () => {
       this.initializeMap();
     }, { once: true });
+
+    this.initializeDragAndDrop();
   }
 
   disconnect() {
@@ -110,6 +113,140 @@ export default class extends Controller {
     }
   }
 
+  initializeDragAndDrop() {
+    // スポットリストのドラッグ設定
+    const listTargets = [
+      this.sightseeingListTarget,
+      this.restaurantListTarget,
+      this.hotelListTarget
+    ];
+  
+    listTargets.forEach(list => {
+      new Sortable(list, {
+        group: {
+          name: 'spots',
+          pull: 'clone',
+          put: false
+        },
+        sort: false,
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        removeCloneOnHide: true,  // 追加：クローンを非表示時に削除
+        onClone: (evt) => {
+          const item = evt.item;
+          const clone = evt.clone;
+          clone.dataset.spotId = item.dataset.spotId;
+          clone.dataset.category = item.closest('.spot-section').dataset.category;
+        }
+      });
+    });
+  
+    // スケジュールリストのドラッグ設定
+    this.scheduleListTargets.forEach(list => {
+      new Sortable(list, {
+        group: {
+          name: 'spots',
+          pull: true,
+          put: true
+        },
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onAdd: (evt) => {
+          const item = evt.item;
+          const list = evt.to;
+          item.classList.add('schedule-spot-item');
+          item.dataset.day = list.dataset.day;
+          item.dataset.timeZone = list.dataset.timeZone;
+          
+          // 番号を更新
+          this.updateAllSpotNumbers();
+        },
+        onSort: (evt) => {
+          // ドラッグ&ドロップでの並び替え時に番号を更新
+          this.updateAllSpotNumbers();
+        }
+      });
+    });
+  }
+
+  // 全てのスポットの番号を更新するメソッド
+  updateAllSpotNumbers() {
+    let spotNumber = 1;
+    const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
+    const timeZones = ['morning', 'noon', 'night'];
+
+    days.forEach(day => {
+      timeZones.forEach(timeZone => {
+        this.scheduleListTargets.forEach(list => {
+          if (parseInt(list.dataset.day) === day && list.dataset.timeZone === timeZone) {
+            // カードが存在する場合のみ処理
+            Array.from(list.children).forEach(spotItem => {
+              const numberBadge = spotItem.querySelector('.badge');
+              if (numberBadge) {
+                numberBadge.textContent = spotNumber.toString();
+                spotNumber++;
+              }
+            });
+          }
+        });
+      });
+    });
+  }
+
+  deleteFromList(event) {
+    const item = event.target.closest('.spot-item');
+    if (!item || !confirm('このスポットを削除してもよろしいですか？')) {
+      return;
+    }
+  
+    const spotId = item.dataset.spotId;
+    const category = item.dataset.category;
+    const parentList = item.closest('.spots-list, .schedule-list');
+  
+    // 同じspotIdを持つ全てのカードを取得して削除
+    document.querySelectorAll(`.spot-item[data-spot-id="${spotId}"]`).forEach(card => {
+      const cardList = card.closest('.spots-list, .schedule-list');
+      card.remove();
+      
+      // リストが空になった場合の処理
+      if (cardList && cardList.children.length === 0) {
+        cardList.style.padding = '0';
+        cardList.style.minHeight = '0';
+        cardList.style.border = 'none';
+      }
+    });
+  
+    // temporarySpotsからも削除
+    if (category && this.temporarySpots[category]) {
+      this.temporarySpots[category] = this.temporarySpots[category].filter(
+        spot => spot.id.toString() !== spotId.toString()
+      );
+    }
+  
+    // 番号を振り直す
+    this.updateAllSpotNumbers();
+  
+    // サーバーサイドでの削除処理
+    fetch(`/travels/${this.travelIdValue}/spots/${spotId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('削除に失敗しました');
+      }
+      // マーカーの削除
+      this.removeMarker(spotId);
+    })
+    .catch(error => {
+      console.error('Delete error:', error);
+      alert('削除に失敗しました');
+    });
+  }
+
   registerSpot(event) {
     const category = event.currentTarget.dataset.category;
     
@@ -182,7 +319,7 @@ export default class extends Controller {
       restaurant: '#ffc107',
       hotel: '#17a2b8'
     };
-
+  
     const newMarker = new google.maps.Marker({
       position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
       map: this.map,
@@ -199,9 +336,21 @@ export default class extends Controller {
         scale: 15
       }
     });
-
+  
+    newMarker.spotId = spot.id; // マーカーにspotIdを追加
     this.markers.push(newMarker);
     return newMarker;
+  }
+
+  removeMarker(spotId) {
+    const markerIndex = this.markers.findIndex(marker => 
+      marker.spotId && marker.spotId.toString() === spotId.toString()
+    );
+    
+    if (markerIndex !== -1) {
+      this.markers[markerIndex].setMap(null);
+      this.markers.splice(markerIndex, 1);
+    }
   }
 
   cleanupMarkers() {
@@ -246,24 +395,19 @@ export default class extends Controller {
       });
   }
 
-  generateSpotItemHtml(spot, index, category, dayOptions) {
+  generateSpotItemHtml(spot, index, category) {
     return `
-      <div class="card-body">
-        <div class="d-flex align-items-center mb-2">
-          <span class="badge bg-${this.getColorClass(category)} me-2">${index + 1}</span>
-          <span class="flex-grow-1">${spot.name}</span>
-        </div>
-        <div class="schedule-selectors d-flex gap-2">
-          <select class="form-select form-select-sm day-select" data-spot-id="${spot.id}">
-            <option value="">日付選択</option>
-            ${dayOptions}
-          </select>
-          <select class="form-select form-select-sm time-select" data-spot-id="${spot.id}">
-            <option value="">時間帯選択</option>
-            <option value="morning" ${spot.time_zone === 'morning' ? 'selected' : ''}>朝</option>
-            <option value="noon" ${spot.time_zone === 'noon' ? 'selected' : ''}>昼</option>
-            <option value="night" ${spot.time_zone === 'night' ? 'selected' : ''}>夜</option>
-          </select>
+      <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <span class="badge bg-${this.getColorClass(category)} me-2"></span>
+            <span class="flex-grow-1">${spot.name}</span>
+          </div>
+          <button type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  data-action="spots-registration#deleteFromList">
+            <i class="bi bi-trash"></i> 削除
+          </button>
         </div>
       </div>
     `;
