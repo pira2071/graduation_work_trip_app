@@ -76,27 +76,44 @@
     height: 0 !important;
     overflow: hidden;
   }
+}
 
-  .spot-item {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 10px;
-    cursor: grab;
-    user-select: none;
+// スポットアイテムのスタイル
+.spot-item {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  cursor: grab;
+  user-select: none;
+  
+  &:active {
+    cursor: grabbing;
+  }
 
-    &:last-child {
-      margin-bottom: 0;
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    
+    .card-body {
+      padding: 0.75rem;
     }
+  }
 
-    &:active {
-      cursor: grabbing;
-    }
+  .badge {
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
-// 旅程表エリア固有のスタイル
+// 旅程表エリア
 .schedule-area {
   margin-top: 2rem;
 
@@ -117,20 +134,23 @@
   }
 
   .schedule-list {
+    min-height: 80px !important;
     border: 2px dashed #dee2e6;
+    padding: 1rem;
     
     &.sortable-drag-active {
-      background-color: rgba(0, 123, 255, 0.1);
-      border-style: solid;
+      background-color: rgba(0, 123, 255, 0.05);
+      border: 2px solid #007bff;
     }
-  }
-
-  .schedule-spot-item {
-    margin: 0.5rem 0;
-    transition: transform 0.2s;
-    
-    &:hover {
-      transform: translateY(-2px);
+  
+    .spot-item {
+      margin: 0.5rem 0;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
     }
   }
 }
@@ -138,13 +158,31 @@
 // ドラッグ&ドロップ関連
 .sortable-ghost {
   opacity: 0.5;
-  background-color: #e9ecef;
+  background-color: rgba(0, 123, 255, 0.1) !important;
+  border: 2px dashed #007bff !important;
+}
+
+.sortable-drag {
+  opacity: 1;
+  transform: rotate(2deg);
+  cursor: grabbing;
 }
 
 // 時間帯の背景色
 .bg-light-yellow { background-color: #fff3cd; }
 .bg-light-orange { background-color: #ffe5d0; }
 .bg-light-blue { background-color: #d1ecf1; }
+
+// スポット番号のバッジスタイル
+.badge[data-spot-number] {
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
 
 // レスポンシブ対応
 @media (max-width: 768px) {
@@ -166,13 +204,4 @@
       }
     }
   }
-}
-.badge[data-spot-number] {
-  min-width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: bold;
 }

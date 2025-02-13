@@ -2,7 +2,7 @@
   <script>
     function initializeSpotsMap() {
       window.googleMapsLoaded = true;
-      window.dispatchEvent(new Event('maps-loaded'));  // イベント名を統一
+      window.dispatchEvent(new Event('maps-loaded'));
     }
   </script>
   <script src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GOOGLE_MAPS_API_KEY'] %>&libraries=places&callback=initializeSpotsMap" async defer></script>
@@ -12,6 +12,19 @@
      data-controller="spots-registration" 
      data-spots-registration-travel-id-value="<%= @travel.id %>"
      data-spots-registration-total-days-value="<%= @total_days %>">
+
+  <div class="debug-info" style="margin: 20px; padding: 10px; border: 1px solid #ccc;">
+    <h4>Debug Info</h4>
+    <p>Total spots: <%= @spots.count %></p>
+    <p>Scheduled spots: <%= @schedules.count %></p>
+    <% @schedules.each do |spot| %>
+      <p>
+        <%= spot.name %> - 
+        Day: <%= spot.schedule.day_number %>, 
+        Time: <%= spot.schedule.time_zone %>
+      </p>
+    <% end %>
+  </div>
   
   <!-- 検索エリア -->
   <div class="search-area mb-4">
@@ -75,43 +88,46 @@
           <div class="schedule-list" 
               data-spots-registration-target="scheduleList"
               data-day="<%= day %>"
-              data-time-zone="<%= time_zone %>"
-              data-schedule-empty="<%= @schedules&.select { |spot| 
+              data-time-zone="<%= time_zone %>">
+            <% scheduled_spots = @schedules.select { |spot| 
                 spot.schedule&.day_number == day && 
                 spot.schedule&.time_zone == time_zone 
-              }.empty? %>">
-              <% @schedules&.select { |spot| 
-                  spot.schedule&.day_number == day && 
-                  spot.schedule&.time_zone == time_zone 
-                }&.sort_by { |spot| spot.schedule&.order_number || Float::INFINITY }&.each do |spot| %>
-                <%= render partial: 'spot', locals: { 
-                  spot: spot, 
-                  schedule: spot.schedule,
-                  show_number: true  # 番号表示フラグを追加
-                } %>
-              <% end %>
+              } %>
+            
+            <% scheduled_spots.sort_by { |spot| spot.schedule&.order_number || 0 }.each do |spot| %>
+              <%= render partial: 'spot', locals: { 
+                spot: spot, 
+                schedule: spot.schedule
+              } %>
+            <% end %>
           </div>
         </div>
       <% end %>
     <% end %>
   </div>
 
+  <!-- デバッグ表示を追加 -->
+  <div style="display: none;">
+    <p>Total spots: <%= @spots.count %></p>
+    <p>Scheduled spots: <%= @schedules.count %></p>
+    <% @schedules.each do |spot| %>
+      <p><%= spot.name %>: Day <%= spot.schedule&.day_number %>, Time: <%= spot.schedule&.time_zone %></p>
+    <% end %>
+  </div>
+
   <!-- 保存ボタン -->
-  <div class="text-center">
-    <button data-action="spots-registration#saveSchedules" class="btn btn-primary px-5">保存</button>
+  <div class="text-center mt-4 mb-5">
+    <button type="button" 
+            class="btn btn-primary px-5"
+            data-action="spots-registration#saveSchedules">
+      保存
+    </button>
   </div>
 </div>
 
 <%= content_tag :div, "", 
     data: {
-      spots_registration_existing_spots_value: @spots.to_json(
-        only: [:id, :name, :category, :lat, :lng, :order_number, :travel_id],  # travel_idを追加
-        include: { 
-          schedule: { 
-            only: [:id, :day_number, :time_zone, :order_number]  # schedule.idを追加
-          }
-        }
-      )
+      spots_registration_existing_spots_value: @spots_json
     },
     style: "display: none;" 
 %>

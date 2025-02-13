@@ -3,14 +3,18 @@ class SpotsController < ApplicationController
   
   def new
     @travel = Travel.find(params[:travel_id])
-    @spots = @travel.spots
-                   .includes(:schedule)  # scheduleを含める
-                   .order(:category, :order_number)
-    @schedules = @travel.spots
-                       .includes(:schedule)
-                       .where.not(schedules: { id: nil })
-                       .order('schedules.day_number ASC, schedules.time_zone ASC, schedules.order_number ASC')
+    @spots = @travel.spots.includes(:schedule)
+    @schedules = @spots.select { |spot| spot.schedule.present? }
     @total_days = (@travel.end_date - @travel.start_date).to_i + 1
+  
+    # デバッグ用出力を追加
+    Rails.logger.debug "==== Debug Info ===="
+    Rails.logger.debug "Travel ID: #{@travel.id}"
+    Rails.logger.debug "Spots count: #{@spots.count}"
+    Rails.logger.debug "Scheduled spots count: #{@schedules.count}"
+    @schedules.each do |spot|
+      Rails.logger.debug "Spot: #{spot.name}, Schedule: #{spot.schedule.attributes}"
+    end
   end
 
   def register
@@ -69,41 +73,45 @@ class SpotsController < ApplicationController
   
     begin
       ActiveRecord::Base.transaction do
-        # 既存のスケジュールをクリア
-        @travel.spots.each do |spot|
-          spot.schedule&.destroy
-        end
+        # 既存のスケジュールを削除
+        Schedule.where(spot_id: @travel.spot_ids).destroy_all
   
-        # 新しいスケジュールを保存
+        # 新しいスケジュールを作成
         schedules_params.each do |schedule_param|
           spot = @travel.spots.find(schedule_param[:spot_id])
-          spot.create_schedule!(
+          
+          Schedule.create!(
+            spot: spot,
             day_number: schedule_param[:day_number],
             time_zone: schedule_param[:time_zone],
             order_number: schedule_param[:order_number]
           )
         end
-      end
   
-      # スケジュールとマーカー情報を含めて返す
-      spots_with_schedules = @travel.spots.includes(:schedule).map do |spot|
-        {
-          id: spot.id,
-          name: spot.name,
-          category: spot.category,
-          lat: spot.lat,
-          lng: spot.lng,
-          schedule: spot.schedule.as_json(only: [:day_number, :time_zone, :order_number])
+        # 更新後のデータを取得
+        updated_spots = @travel.spots.includes(:schedule).map do |spot|
+          {
+            id: spot.id,
+            name: spot.name,
+            category: spot.category,
+            lat: spot.lat,
+            lng: spot.lng,
+            travel_id: @travel.id,
+            order_number: spot.order_number,
+            schedule: spot.schedule&.as_json(
+              only: [:id, :day_number, :time_zone, :order_number]
+            )
+          }
+        end
+  
+        render json: { 
+          success: true, 
+          spots: updated_spots,
+          message: 'スケジュールを保存しました'
         }
       end
-  
-      render json: { 
-        success: true, 
-        spots: spots_with_schedules,
-        message: 'スケジュールを保存しました'
-      }
     rescue => e
-      Rails.logger.error "Schedule save error: #{e.message}"
+      Rails.logger.error "Schedule save error: #{e.message}\n#{e.backtrace.join("\n")}"
       render json: { error: e.message }, status: :unprocessable_entity
     end
   end

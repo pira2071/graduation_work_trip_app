@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_01_08_041824) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_13_083138) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -31,7 +31,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_01_08_041824) do
     t.bigint "spot_id", null: false
     t.integer "order_number", null: false
     t.integer "day_number", null: false
-    t.integer "time_zone", null: false
+    t.string "time_zone", default: "morning", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["spot_id"], name: "index_schedules_on_spot_id"
