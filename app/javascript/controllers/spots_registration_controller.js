@@ -19,11 +19,30 @@ export default class extends Controller {
   }
 
   connect() {
+    // DOMContentLoadedを待つ
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.initializeController();
+      });
+    } else {
+      this.initializeController();
+    }
+  }
+  
+  initializeController() {
+    console.log('Initializing controller...');
+    
+    // Google Maps の初期化
     window.addEventListener('maps-loaded', () => {
       this.initializeMap();
     }, { once: true });
-
-    this.initializeDragAndDrop();
+  
+    // 少し遅延を入れて初期化を実行
+    setTimeout(() => {
+      this.initializeDragAndDrop();
+      this.updateAllSpotNumbers();
+      console.log('Initial setup completed');
+    }, 100);
   }
 
   disconnect() {
@@ -122,11 +141,11 @@ export default class extends Controller {
   loadExistingSpots() {
     if (this.hasExistingSpotsValue) {
       console.log('Loading existing spots:', this.existingSpotsValue);
-  
+      
       // スケジュールのあるスポットとないスポットを分類
       const scheduledSpots = this.existingSpotsValue.filter(spot => spot.schedule);
       const unscheduledSpots = this.existingSpotsValue.filter(spot => !spot.schedule);
-  
+      
       // スケジュール済みのスポットを順序付け
       const sortedScheduledSpots = scheduledSpots.sort((a, b) => {
         if (a.schedule.day_number !== b.schedule.day_number) {
@@ -139,7 +158,19 @@ export default class extends Controller {
         return a.schedule.order_number - b.schedule.order_number;
       });
   
-      // マップの中心を設定
+      // すべてのスポットをカテゴリー別に登録
+      [...sortedScheduledSpots, ...unscheduledSpots].forEach(spot => {
+        const category = spot.category;
+        this.temporarySpots[category].push(spot);
+        this.addMarker(spot, category);
+      });
+  
+      // リストの更新
+      Object.keys(this.temporarySpots).forEach(category => {
+        this.updateSpotsList(category);
+      });
+  
+      // マップの中心設定
       if (sortedScheduledSpots.length > 0) {
         const firstSpot = sortedScheduledSpots[0];
         this.map.setCenter({
@@ -149,112 +180,78 @@ export default class extends Controller {
         this.map.setZoom(14);
       }
   
-      // すべてのスポットをカテゴリー別に登録
-      [...sortedScheduledSpots, ...unscheduledSpots].forEach(spot => {
-        const category = spot.category;
-        this.temporarySpots[category].push(spot);
-        this.addMarker(spot, category);
-      });
-  
-      // スポットリストとマーカー番号を更新
-      Object.keys(this.temporarySpots).forEach(category => {
-        this.updateSpotsList(category);
-      });
-  
-      // スケジュールがあるスポットの番号を更新
-      this.updateAllSpotNumbers();
+      // 最後に一度だけ番号を更新
+      setTimeout(() => {
+        this.updateAllSpotNumbers();
+      }, 100);
     }
   }
-
-  // spots_registration_controller.js の initializeDragAndDrop メソッドを修正
 
   initializeDragAndDrop() {
     console.log('Initializing drag and drop');
   
-    // リストのターゲットを取得
-    const listTargets = [
-      this.sightseeingListTarget,
-      this.restaurantListTarget,
-      this.hotelListTarget
-    ];
-  
-    // スポットリストの設定
-    listTargets.forEach(list => {
-      if (!list) {
-        console.warn('List target not found');
-        return;
-      }
-  
+    // カテゴリー別リストの設定
+    [this.sightseeingListTarget, this.restaurantListTarget, this.hotelListTarget].forEach(list => {
+      if (!list) return;
+      
+      console.log('Setting up Sortable for category list:', list);
+      
       new Sortable(list, {
         group: {
-          name: 'spots',
+          name: 'shared',
           pull: 'clone',
           put: false
         },
         sort: false,
         animation: 150,
         ghostClass: 'sortable-ghost',
-        onStart: (evt) => {
-          console.log('Started dragging', evt.item);
-        },
         onClone: (evt) => {
           const item = evt.item;
           const clone = evt.clone;
-          
-          // クローンの要素に必要な属性とクラスを付与
           clone.className = item.className;
-          clone.classList.add('spot-item');
           clone.dataset.spotId = item.dataset.spotId;
           clone.dataset.category = item.dataset.category;
-          
-          // 内部の要素も正しく複製
-          const originalButton = item.querySelector('button[data-action]');
-          if (originalButton) {
-            const clonedButton = clone.querySelector('button');
-            if (clonedButton) {
-              clonedButton.setAttribute('data-action', originalButton.getAttribute('data-action'));
-            }
-          }
         }
       });
     });
   
     // スケジュールリストの設定
     this.scheduleListTargets.forEach(scheduleList => {
-      if (!scheduleList) {
-        console.warn('Schedule list target not found');
-        return;
-      }
+      console.log('Setting up Sortable for schedule list:', scheduleList);
+      
+      let isUpdatingNumbers = false; // 番号更新中のフラグ
   
       new Sortable(scheduleList, {
-        group: {
-          name: 'spots',
-          pull: true,
-          put: true
-        },
-        sort: true,
+        group: 'shared',
         animation: 150,
         ghostClass: 'sortable-ghost',
         onAdd: (evt) => {
-          console.log('Item added to schedule:', evt.item);
+          if (isUpdatingNumbers) return; // 更新中なら処理をスキップ
+          
+          console.log('Item added to schedule');
           const item = evt.item;
-          const list = evt.to;
-          
           item.classList.add('schedule-spot-item');
-          item.dataset.day = list.dataset.day;
-          item.dataset.timeZone = list.dataset.timeZone;
+          item.dataset.day = scheduleList.dataset.day;
+          item.dataset.timeZone = scheduleList.dataset.timeZone;
           
+          isUpdatingNumbers = true;
           this.updateAllSpotNumbers();
+          setTimeout(() => {
+            isUpdatingNumbers = false;
+          }, 100);
         },
         onSort: (evt) => {
+          if (isUpdatingNumbers) return; // 更新中なら処理をスキップ
+          
           console.log('Items sorted');
+          isUpdatingNumbers = true;
           this.updateAllSpotNumbers();
+          setTimeout(() => {
+            isUpdatingNumbers = false;
+          }, 100);
         },
         onEnd: (evt) => {
-          console.log('Drag ended');
-          if (evt.from !== evt.to) {
-            this.updateAllSpotNumbers();
-          }
+          // ドラッグ&ドロップ終了時のみの処理が必要な場合はここに記述
         }
       });
     });
@@ -277,7 +274,7 @@ export default class extends Controller {
   
     spots.forEach((spot, index) => {
       const spotItem = document.createElement('div');
-      spotItem.className = 'card mb-2';
+      spotItem.className = 'spot-item card mb-2';  // cardクラスをここで追加
       spotItem.dataset.spotId = spot.id;
       spotItem.dataset.category = category;
   
@@ -294,26 +291,35 @@ export default class extends Controller {
 
   // 全てのスポットの番号を更新するメソッド
   updateAllSpotNumbers() {
+    if (!this.scheduleListTargets || this.scheduleListTargets.length === 0) {
+      console.warn('Schedule list targets not found');
+      return;
+    }
+  
+    console.log('Updating all spot numbers...');
     let spotNumber = 1;
+    const processedSpotIds = new Set();  // 処理済みのスポットIDを管理
     const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
     const timeZones = ['morning', 'noon', 'night'];
-    const spotOrder = new Map(); // スポットIDと番号のマッピング
   
-    console.log('Starting updateAllSpotNumbers...'); // デバッグ用
-  
-    // 旅程表中のスポットに番号を振る
     days.forEach(day => {
       timeZones.forEach(timeZone => {
         this.scheduleListTargets.forEach(list => {
+          if (!list) return;
+          
           if (parseInt(list.dataset.day) === day && list.dataset.timeZone === timeZone) {
-            Array.from(list.children).forEach(spotItem => {
-              const numberBadge = spotItem.querySelector('[data-spot-number]');
+            const items = Array.from(list.querySelectorAll('.spot-item'));
+            items.forEach(spotItem => {
               const spotId = spotItem.dataset.spotId;
-              if (numberBadge) {
-                console.log(`Updating number for spot ${spotId} to ${spotNumber}`); // デバッグ用
-                numberBadge.textContent = spotNumber.toString();
-                spotOrder.set(spotId, spotNumber);
-                spotNumber++;
+              // まだ処理していないスポットのみ番号を付与
+              if (!processedSpotIds.has(spotId)) {
+                const badge = spotItem.querySelector('[data-spot-number]');
+                if (badge) {
+                  console.log(`Setting number ${spotNumber} for spot ID: ${spotId}`);
+                  badge.textContent = spotNumber.toString();
+                  processedSpotIds.add(spotId);
+                  spotNumber++;
+                }
               }
             });
           }
@@ -321,8 +327,7 @@ export default class extends Controller {
       });
     });
   
-    console.log('Spot order map:', spotOrder); // デバッグ用
-    this.updateMarkerNumbers(spotOrder);
+    console.log(`Updated numbers for ${processedSpotIds.size} spots`);
   }
 
   deleteFromList(event) {
@@ -333,50 +338,36 @@ export default class extends Controller {
   
     const spotId = item.dataset.spotId;
     const category = item.dataset.category;
-    const parentList = item.closest('.spots-list, .schedule-list');
   
-    // 同じspotIdを持つ全てのカードを取得して削除
+    // 削除予定のスポットIDを保持
+    if (!this.deletedSpotIds) {
+      this.deletedSpotIds = new Set();
+    }
+    this.deletedSpotIds.add(spotId);
+  
+    // DOM上の要素を非表示にする
     document.querySelectorAll(`.spot-item[data-spot-id="${spotId}"]`).forEach(card => {
-      const cardList = card.closest('.spots-list, .schedule-list');
-      card.remove();
-      
-      // リストが空になった場合の処理
-      if (cardList && cardList.children.length === 0) {
-        cardList.style.padding = '0';
-        cardList.style.minHeight = '0';
-        cardList.style.border = 'none';
+      // スケジュールリスト内のカードの場合は完全に削除
+      if (card.closest('.schedule-list')) {
+        card.remove();
+      } else {
+        // スポットリスト内のカードの場合はBootstrapのd-noneクラスで非表示に
+        card.classList.add('d-none');
       }
     });
   
-    // temporarySpotsからも削除
+    // temporarySpotsからも一時的に削除
     if (category && this.temporarySpots[category]) {
       this.temporarySpots[category] = this.temporarySpots[category].filter(
         spot => spot.id.toString() !== spotId.toString()
       );
     }
   
-    // 番号を振り直す
+    // 番号を振り直す（以前の実装を使用）
     this.updateAllSpotNumbers();
   
-    // サーバーサイドでの削除処理
-    fetch(`/travels/${this.travelIdValue}/spots/${spotId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-      }
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('削除に失敗しました');
-      }
-      // マーカーの削除
-      this.removeMarker(spotId);
-    })
-    .catch(error => {
-      console.error('Delete error:', error);
-      alert('削除に失敗しました');
-    });
+    // イベントの伝播を止める
+    event.stopPropagation();
   }
 
   registerSpot(event) {
@@ -551,14 +542,12 @@ export default class extends Controller {
   }
 
   generateSpotItemHtml(spot, index, category) {
-    const scheduleOrder = spot.schedule ? spot.schedule.order_number : '';
-    
     return `
-      <div class="spot-item card" data-spot-id="${spot.id}" data-category="${category}">
-        <div class="card-body p-2">
+      <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
+        <div class="card p-2">
           <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-              <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number>${scheduleOrder}</span>
+              <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
               <span class="spot-name">${spot.name}</span>
             </div>
             <button type="button" 
@@ -573,14 +562,18 @@ export default class extends Controller {
   }
 
   saveSchedules() {
-    console.log('saveSchedules called'); // デバッグログ
     const schedules = [];
+    const deletedSpots = Array.from(this.deletedSpotIds || []);
     
+    // スケジュール情報の収集
     this.scheduleListTargets.forEach(list => {
       const day = parseInt(list.dataset.day);
       const timeZone = list.dataset.timeZone;
       
       Array.from(list.children).forEach((spotItem, index) => {
+        // display: noneの要素は除外
+        if (spotItem.style.display === 'none') return;
+  
         const spotId = spotItem.dataset.spotId;
         if (!spotId) return;
         
@@ -593,13 +586,44 @@ export default class extends Controller {
       });
     });
   
-    if (schedules.length === 0) {
-      console.log('No schedules to save');
-      return;
-    }
+    // サーバーに送信するデータ
+    const saveData = {
+      schedules: schedules,
+      deleted_spot_ids: deletedSpots
+    };
   
-    console.log('Schedules to save:', schedules); // デバッグログ
-    this.saveSchedulesWithServer(schedules);
+    // サーバーへの保存処理
+    fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      },
+      body: JSON.stringify(saveData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.message || 'スケジュールの保存に失敗しました');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        alert('旅程表を保存しました');
+        // 削除済みIDをクリア
+        this.deletedSpotIds = new Set();
+        // プラン詳細画面へ遷移
+        window.location.href = `/travels/${this.travelIdValue}`;
+      } else {
+        throw new Error(data.message || '保存に失敗しました');
+      }
+    })
+    .catch(error => {
+      console.error('Save error:', error);
+      alert('保存に失敗しました: ' + error.message);
+    });
   }
   
   saveSchedulesWithServer(schedules) {

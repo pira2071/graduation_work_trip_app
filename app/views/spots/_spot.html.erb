@@ -1,13 +1,12 @@
 <div class="spot-item card mb-2" 
      data-spot-id="<%= spot.id %>" 
-     data-category="<%= spot.category %>"
-     draggable="true">
+     data-category="<%= spot.category %>">
   <div class="card-body p-2">
     <div class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center">
-        <span class="badge bg-<%= category_badge_class(spot.category) %> me-2" data-spot-number>
-          <%= schedule&.order_number %>
-        </span>
+        <%# バッジの構造を単純化 %>
+        <span class="badge <%= category_badge_class(spot.category) %>" 
+              data-spot-number><%= schedule&.order_number %></span>
         <span class="spot-name"><%= spot.name %></span>
       </div>
       <button type="button" 

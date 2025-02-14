@@ -1,4 +1,5 @@
 <% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
   <script>
     function initializeSpotsMap() {
       window.googleMapsLoaded = true;
@@ -92,12 +93,13 @@
             <% scheduled_spots = @schedules.select { |spot| 
                 spot.schedule&.day_number == day && 
                 spot.schedule&.time_zone == time_zone 
-              } %>
+              }.sort_by { |spot| spot.schedule&.order_number || 0 } %>
             
-            <% scheduled_spots.sort_by { |spot| spot.schedule&.order_number || 0 }.each do |spot| %>
+            <% scheduled_spots.each do |spot| %>
               <%= render partial: 'spot', locals: { 
                 spot: spot, 
-                schedule: spot.schedule
+                schedule: spot.schedule,
+                show_number: true
               } %>
             <% end %>
           </div>

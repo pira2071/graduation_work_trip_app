@@ -9220,10 +9220,24 @@
       };
     }
     connect() {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          this.initializeController();
+        });
+      } else {
+        this.initializeController();
+      }
+    }
+    initializeController() {
+      console.log("Initializing controller...");
       window.addEventListener("maps-loaded", () => {
         this.initializeMap();
       }, { once: true });
-      this.initializeDragAndDrop();
+      setTimeout(() => {
+        this.initializeDragAndDrop();
+        this.updateAllSpotNumbers();
+        console.log("Initial setup completed");
+      }, 100);
     }
     disconnect() {
       if (this.map) {
@@ -9315,14 +9329,6 @@
           }
           return a.schedule.order_number - b.schedule.order_number;
         });
-        if (sortedScheduledSpots.length > 0) {
-          const firstSpot = sortedScheduledSpots[0];
-          this.map.setCenter({
-            lat: parseFloat(firstSpot.lat),
-            lng: parseFloat(firstSpot.lng)
-          });
-          this.map.setZoom(14);
-        }
         [...sortedScheduledSpots, ...unscheduledSpots].forEach((spot) => {
           const category = spot.category;
           this.temporarySpots[category].push(spot);
@@ -9331,83 +9337,75 @@
         Object.keys(this.temporarySpots).forEach((category) => {
           this.updateSpotsList(category);
         });
-        this.updateAllSpotNumbers();
+        if (sortedScheduledSpots.length > 0) {
+          const firstSpot = sortedScheduledSpots[0];
+          this.map.setCenter({
+            lat: parseFloat(firstSpot.lat),
+            lng: parseFloat(firstSpot.lng)
+          });
+          this.map.setZoom(14);
+        }
+        setTimeout(() => {
+          this.updateAllSpotNumbers();
+        }, 100);
       }
     }
-    // spots_registration_controller.js の initializeDragAndDrop メソッドを修正
     initializeDragAndDrop() {
       console.log("Initializing drag and drop");
-      const listTargets = [
-        this.sightseeingListTarget,
-        this.restaurantListTarget,
-        this.hotelListTarget
-      ];
-      listTargets.forEach((list) => {
-        if (!list) {
-          console.warn("List target not found");
+      [this.sightseeingListTarget, this.restaurantListTarget, this.hotelListTarget].forEach((list) => {
+        if (!list)
           return;
-        }
+        console.log("Setting up Sortable for category list:", list);
         new sortable_esm_default(list, {
           group: {
-            name: "spots",
+            name: "shared",
             pull: "clone",
             put: false
           },
           sort: false,
           animation: 150,
           ghostClass: "sortable-ghost",
-          onStart: (evt) => {
-            console.log("Started dragging", evt.item);
-          },
           onClone: (evt) => {
             const item = evt.item;
             const clone2 = evt.clone;
             clone2.className = item.className;
-            clone2.classList.add("spot-item");
             clone2.dataset.spotId = item.dataset.spotId;
             clone2.dataset.category = item.dataset.category;
-            const originalButton = item.querySelector("button[data-action]");
-            if (originalButton) {
-              const clonedButton = clone2.querySelector("button");
-              if (clonedButton) {
-                clonedButton.setAttribute("data-action", originalButton.getAttribute("data-action"));
-              }
-            }
           }
         });
       });
       this.scheduleListTargets.forEach((scheduleList) => {
-        if (!scheduleList) {
-          console.warn("Schedule list target not found");
-          return;
-        }
+        console.log("Setting up Sortable for schedule list:", scheduleList);
+        let isUpdatingNumbers = false;
         new sortable_esm_default(scheduleList, {
-          group: {
-            name: "spots",
-            pull: true,
-            put: true
-          },
-          sort: true,
+          group: "shared",
           animation: 150,
           ghostClass: "sortable-ghost",
           onAdd: (evt) => {
-            console.log("Item added to schedule:", evt.item);
+            if (isUpdatingNumbers)
+              return;
+            console.log("Item added to schedule");
             const item = evt.item;
-            const list = evt.to;
             item.classList.add("schedule-spot-item");
-            item.dataset.day = list.dataset.day;
-            item.dataset.timeZone = list.dataset.timeZone;
+            item.dataset.day = scheduleList.dataset.day;
+            item.dataset.timeZone = scheduleList.dataset.timeZone;
+            isUpdatingNumbers = true;
             this.updateAllSpotNumbers();
+            setTimeout(() => {
+              isUpdatingNumbers = false;
+            }, 100);
           },
           onSort: (evt) => {
+            if (isUpdatingNumbers)
+              return;
             console.log("Items sorted");
+            isUpdatingNumbers = true;
             this.updateAllSpotNumbers();
+            setTimeout(() => {
+              isUpdatingNumbers = false;
+            }, 100);
           },
           onEnd: (evt) => {
-            console.log("Drag ended");
-            if (evt.from !== evt.to) {
-              this.updateAllSpotNumbers();
-            }
           }
         });
       });
@@ -9425,7 +9423,7 @@
       const spots = this.temporarySpots[category].filter((spot) => parseInt(spot.travel_id) === parseInt(this.travelIdValue));
       spots.forEach((spot, index2) => {
         const spotItem = document.createElement("div");
-        spotItem.className = "card mb-2";
+        spotItem.className = "spot-item card mb-2";
         spotItem.dataset.spotId = spot.id;
         spotItem.dataset.category = category;
         if (spot.schedule) {
@@ -9438,31 +9436,39 @@
     }
     // 全てのスポットの番号を更新するメソッド
     updateAllSpotNumbers() {
+      if (!this.scheduleListTargets || this.scheduleListTargets.length === 0) {
+        console.warn("Schedule list targets not found");
+        return;
+      }
+      console.log("Updating all spot numbers...");
       let spotNumber = 1;
+      const processedSpotIds = /* @__PURE__ */ new Set();
       const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
       const timeZones = ["morning", "noon", "night"];
-      const spotOrder = /* @__PURE__ */ new Map();
-      console.log("Starting updateAllSpotNumbers...");
       days.forEach((day) => {
         timeZones.forEach((timeZone) => {
           this.scheduleListTargets.forEach((list) => {
+            if (!list)
+              return;
             if (parseInt(list.dataset.day) === day && list.dataset.timeZone === timeZone) {
-              Array.from(list.children).forEach((spotItem) => {
-                const numberBadge = spotItem.querySelector("[data-spot-number]");
+              const items = Array.from(list.querySelectorAll(".spot-item"));
+              items.forEach((spotItem) => {
                 const spotId = spotItem.dataset.spotId;
-                if (numberBadge) {
-                  console.log(`Updating number for spot ${spotId} to ${spotNumber}`);
-                  numberBadge.textContent = spotNumber.toString();
-                  spotOrder.set(spotId, spotNumber);
-                  spotNumber++;
+                if (!processedSpotIds.has(spotId)) {
+                  const badge = spotItem.querySelector("[data-spot-number]");
+                  if (badge) {
+                    console.log(`Setting number ${spotNumber} for spot ID: ${spotId}`);
+                    badge.textContent = spotNumber.toString();
+                    processedSpotIds.add(spotId);
+                    spotNumber++;
+                  }
                 }
               });
             }
           });
         });
       });
-      console.log("Spot order map:", spotOrder);
-      this.updateMarkerNumbers(spotOrder);
+      console.log(`Updated numbers for ${processedSpotIds.size} spots`);
     }
     deleteFromList(event) {
       const item = event.target.closest(".spot-item");
@@ -9471,14 +9477,15 @@
       }
       const spotId = item.dataset.spotId;
       const category = item.dataset.category;
-      const parentList = item.closest(".spots-list, .schedule-list");
+      if (!this.deletedSpotIds) {
+        this.deletedSpotIds = /* @__PURE__ */ new Set();
+      }
+      this.deletedSpotIds.add(spotId);
       document.querySelectorAll(`.spot-item[data-spot-id="${spotId}"]`).forEach((card) => {
-        const cardList = card.closest(".spots-list, .schedule-list");
-        card.remove();
-        if (cardList && cardList.children.length === 0) {
-          cardList.style.padding = "0";
-          cardList.style.minHeight = "0";
-          cardList.style.border = "none";
+        if (card.closest(".schedule-list")) {
+          card.remove();
+        } else {
+          card.classList.add("d-none");
         }
       });
       if (category && this.temporarySpots[category]) {
@@ -9487,21 +9494,7 @@
         );
       }
       this.updateAllSpotNumbers();
-      fetch(`/travels/${this.travelIdValue}/spots/${spotId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        }
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-        }
-        this.removeMarker(spotId);
-      }).catch((error2) => {
-        console.error("Delete error:", error2);
-        alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-      });
+      event.stopPropagation();
     }
     registerSpot(event) {
       const category = event.currentTarget.dataset.category;
@@ -9648,13 +9641,12 @@
       });
     }
     generateSpotItemHtml(spot, index2, category) {
-      const scheduleOrder = spot.schedule ? spot.schedule.order_number : "";
       return `
-      <div class="spot-item card" data-spot-id="${spot.id}" data-category="${category}">
-        <div class="card-body p-2">
+      <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
+        <div class="card p-2">
           <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-              <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number>${scheduleOrder}</span>
+              <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
               <span class="spot-name">${spot.name}</span>
             </div>
             <button type="button" 
@@ -9668,12 +9660,14 @@
     `;
     }
     saveSchedules() {
-      console.log("saveSchedules called");
       const schedules = [];
+      const deletedSpots = Array.from(this.deletedSpotIds || []);
       this.scheduleListTargets.forEach((list) => {
         const day = parseInt(list.dataset.day);
         const timeZone = list.dataset.timeZone;
         Array.from(list.children).forEach((spotItem, index2) => {
+          if (spotItem.style.display === "none")
+            return;
           const spotId = spotItem.dataset.spotId;
           if (!spotId)
             return;
@@ -9685,12 +9679,36 @@
           });
         });
       });
-      if (schedules.length === 0) {
-        console.log("No schedules to save");
-        return;
-      }
-      console.log("Schedules to save:", schedules);
-      this.saveSchedulesWithServer(schedules);
+      const saveData = {
+        schedules,
+        deleted_spot_ids: deletedSpots
+      };
+      fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify(saveData)
+      }).then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.message || "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u306E\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+          });
+        }
+        return response.json();
+      }).then((data) => {
+        if (data.success) {
+          alert("\u65C5\u7A0B\u8868\u3092\u4FDD\u5B58\u3057\u307E\u3057\u305F");
+          this.deletedSpotIds = /* @__PURE__ */ new Set();
+          window.location.href = `/travels/${this.travelIdValue}`;
+        } else {
+          throw new Error(data.message || "\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        }
+      }).catch((error2) => {
+        console.error("Save error:", error2);
+        alert("\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
+      });
     }
     saveSchedulesWithServer(schedules) {
       console.log("saveSchedulesWithServer called with:", schedules);
