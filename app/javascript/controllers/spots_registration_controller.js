@@ -154,8 +154,6 @@ export default class extends Controller {
   }
 
   loadExistingSpots() {
-    console.log('loadExistingSpots started');
-
     if (this.hasExistingSpotsValue) {
       console.log('Loading existing spots:', this.existingSpotsValue);
       
@@ -163,10 +161,7 @@ export default class extends Controller {
       const scheduledSpots = this.existingSpotsValue.filter(spot => spot.schedule);
       const unscheduledSpots = this.existingSpotsValue.filter(spot => !spot.schedule);
       
-      console.log('Scheduled spots:', scheduledSpots);
-      console.log('Unscheduled spots:', unscheduledSpots);
-  
-      // スケジュール済みのスポットを順序付け
+      // スケジュール済みのスポットを日程順にソート
       const sortedScheduledSpots = scheduledSpots.sort((a, b) => {
         if (a.schedule.day_number !== b.schedule.day_number) {
           return a.schedule.day_number - b.schedule.day_number;
@@ -178,27 +173,31 @@ export default class extends Controller {
         return a.schedule.order_number - b.schedule.order_number;
       });
   
-      // すべてのスポットをマップに表示
-      [...sortedScheduledSpots, ...unscheduledSpots].forEach(spot => {
-        console.log('Adding marker for spot:', spot);
+      // 番号付きマーカーを追加（スケジュール済みのスポット）
+      sortedScheduledSpots.forEach((spot, index) => {
         const category = spot.category;
         this.temporarySpots[category].push(spot);
-        this.addMarker(spot, category);
+        this.addMarker(spot, category, index + 1);  // インデックス+1を番号として渡す
       });
   
-      // マップの中心を設定
+      // 番号なしマーカーを追加（未スケジュールのスポット）
+      unscheduledSpots.forEach(spot => {
+        const category = spot.category;
+        this.temporarySpots[category].push(spot);
+        this.addMarker(spot, category);  // 番号なしで追加
+      });
+  
+      // マップの表示位置を調整
       if (sortedScheduledSpots.length > 0) {
         const firstSpot = sortedScheduledSpots[0];
         const center = {
           lat: parseFloat(firstSpot.lat),
           lng: parseFloat(firstSpot.lng)
         };
-        console.log('Setting map center to:', center);
         this.map.setCenter(center);
         this.map.setZoom(14);
       }
   
-      // その他の更新処理
       Object.keys(this.temporarySpots).forEach(category => {
         this.updateSpotsList(category);
       });
@@ -235,41 +234,13 @@ export default class extends Controller {
   
     // スケジュールリストの設定
     this.scheduleListTargets.forEach(scheduleList => {
-      console.log('Setting up Sortable for schedule list:', scheduleList);
-      
-      let isUpdatingNumbers = false; // 番号更新中のフラグ
-  
       new Sortable(scheduleList, {
         group: 'shared',
         animation: 150,
         ghostClass: 'sortable-ghost',
-        onAdd: (evt) => {
-          if (isUpdatingNumbers) return; // 更新中なら処理をスキップ
-          
-          console.log('Item added to schedule');
-          const item = evt.item;
-          item.classList.add('schedule-spot-item');
-          item.dataset.day = scheduleList.dataset.day;
-          item.dataset.timeZone = scheduleList.dataset.timeZone;
-          
-          isUpdatingNumbers = true;
-          this.updateAllSpotNumbers();
-          setTimeout(() => {
-            isUpdatingNumbers = false;
-          }, 100);
-        },
         onSort: (evt) => {
-          if (isUpdatingNumbers) return; // 更新中なら処理をスキップ
-          
-          console.log('Items sorted');
-          isUpdatingNumbers = true;
+          // ドラッグ&ドロップ完了時に番号を更新
           this.updateAllSpotNumbers();
-          setTimeout(() => {
-            isUpdatingNumbers = false;
-          }, 100);
-        },
-        onEnd: (evt) => {
-          // ドラッグ&ドロップ終了時のみの処理が必要な場合はここに記述
         }
       });
     });
@@ -316,10 +287,12 @@ export default class extends Controller {
   
     console.log('Updating all spot numbers...');
     let spotNumber = 1;
-    const processedSpotIds = new Set();  // 処理済みのスポットIDを管理
+    const processedSpotIds = new Set();
     const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
     const timeZones = ['morning', 'noon', 'night'];
+    const spotOrder = new Map(); // スポットIDと番号のマッピング
   
+    // 全てのスケジュールされたスポットを順番に処理
     days.forEach(day => {
       timeZones.forEach(timeZone => {
         this.scheduleListTargets.forEach(list => {
@@ -329,13 +302,12 @@ export default class extends Controller {
             const items = Array.from(list.querySelectorAll('.spot-item'));
             items.forEach(spotItem => {
               const spotId = spotItem.dataset.spotId;
-              // まだ処理していないスポットのみ番号を付与
               if (!processedSpotIds.has(spotId)) {
                 const badge = spotItem.querySelector('[data-spot-number]');
                 if (badge) {
-                  console.log(`Setting number ${spotNumber} for spot ID: ${spotId}`);
                   badge.textContent = spotNumber.toString();
                   processedSpotIds.add(spotId);
+                  spotOrder.set(spotId, spotNumber); // マップ用に番号を保存
                   spotNumber++;
                 }
               }
@@ -345,7 +317,8 @@ export default class extends Controller {
       });
     });
   
-    console.log(`Updated numbers for ${processedSpotIds.size} spots`);
+    // マーカーの番号を更新
+    this.updateMarkerNumbers(spotOrder);
   }
 
   deleteFromList(event) {
@@ -357,34 +330,29 @@ export default class extends Controller {
     const spotId = item.dataset.spotId;
     const category = item.dataset.category;
   
-    // 削除予定のスポットIDを保持
     if (!this.deletedSpotIds) {
       this.deletedSpotIds = new Set();
     }
     this.deletedSpotIds.add(spotId);
   
-    // DOM上の要素を非表示にする
+    // DOM上の要素を削除
     document.querySelectorAll(`.spot-item[data-spot-id="${spotId}"]`).forEach(card => {
-      // スケジュールリスト内のカードの場合は完全に削除
-      if (card.closest('.schedule-list')) {
-        card.remove();
-      } else {
-        // スポットリスト内のカードの場合はBootstrapのd-noneクラスで非表示に
-        card.classList.add('d-none');
-      }
+      card.remove();
     });
   
-    // temporarySpotsからも一時的に削除
+    // temporarySpotsから削除
     if (category && this.temporarySpots[category]) {
       this.temporarySpots[category] = this.temporarySpots[category].filter(
         spot => spot.id.toString() !== spotId.toString()
       );
     }
   
-    // 番号を振り直す（以前の実装を使用）
+    // マーカーを削除
+    this.removeMarker(spotId);
+  
+    // 番号を振り直す
     this.updateAllSpotNumbers();
   
-    // イベントの伝播を止める
     event.stopPropagation();
   }
 
@@ -455,7 +423,7 @@ export default class extends Controller {
     this.updateSpotsOrder(category);
   }
 
-  addMarker(spot, category) {
+  addMarker(spot, category, number = null) {
     console.log('Adding marker for:', spot);
   
     const categoryColors = {
@@ -472,22 +440,26 @@ export default class extends Controller {
         lng: parseFloat(spot.lng)
       };
   
-      console.log('Marker position:', position);
-  
+      // SVGパスを使用してマーカーを作成
       const markerOptions = {
         position: position,
         map: this.map,
         title: spot.name,
+        label: number ? {
+          text: number.toString(),
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        } : null,
         icon: {
-          // カスタムSVGパスを使用してピン型を作成
           path: 'M 12,2 C 8.1340068,2 5,5.1340068 5,9 c 0,5.25 7,13 7,13 0,0 7,-7.75 7,-13 0,-3.8659932 -3.134007,-7 -7,-7 z',
           fillColor: categoryColors[category],
           fillOpacity: 1.0,
           strokeColor: 'white',
           strokeWeight: 2,
-          scale: 1.5,
-          // アンカーポイントを調整して位置を最適化
-          anchor: new google.maps.Point(12, 24)
+          scale: 2,
+          anchor: new google.maps.Point(12, 24),
+          labelOrigin: new google.maps.Point(12, 10)  // ラベル（番号）の位置を調整
         }
       };
   
@@ -495,7 +467,6 @@ export default class extends Controller {
       marker.spotId = spot.id;
       this.markers.push(marker);
   
-      console.log('Marker created:', marker);
       return marker;
     } catch (error) {
       console.error('Error creating marker:', error);
@@ -569,12 +540,13 @@ export default class extends Controller {
       if (marker && marker.spotId) {
         const number = spotOrder.get(marker.spotId.toString());
         try {
-          marker.setLabel({
-            text: number ? number.toString() : '',
+          // マーカーのラベルを更新
+          marker.setLabel(number ? {
+            text: number.toString(),
             color: 'white',
             fontSize: '14px',
             fontWeight: 'bold'
-          });
+          } : null);
         } catch (error) {
           console.error('Error updating marker label:', error, marker);
         }

@@ -9327,13 +9327,10 @@
       });
     }
     loadExistingSpots() {
-      console.log("loadExistingSpots started");
       if (this.hasExistingSpotsValue) {
         console.log("Loading existing spots:", this.existingSpotsValue);
         const scheduledSpots = this.existingSpotsValue.filter((spot) => spot.schedule);
         const unscheduledSpots = this.existingSpotsValue.filter((spot) => !spot.schedule);
-        console.log("Scheduled spots:", scheduledSpots);
-        console.log("Unscheduled spots:", unscheduledSpots);
         const sortedScheduledSpots = scheduledSpots.sort((a, b) => {
           if (a.schedule.day_number !== b.schedule.day_number) {
             return a.schedule.day_number - b.schedule.day_number;
@@ -9344,8 +9341,12 @@
           }
           return a.schedule.order_number - b.schedule.order_number;
         });
-        [...sortedScheduledSpots, ...unscheduledSpots].forEach((spot) => {
-          console.log("Adding marker for spot:", spot);
+        sortedScheduledSpots.forEach((spot, index2) => {
+          const category = spot.category;
+          this.temporarySpots[category].push(spot);
+          this.addMarker(spot, category, index2 + 1);
+        });
+        unscheduledSpots.forEach((spot) => {
           const category = spot.category;
           this.temporarySpots[category].push(spot);
           this.addMarker(spot, category);
@@ -9356,7 +9357,6 @@
             lat: parseFloat(firstSpot.lat),
             lng: parseFloat(firstSpot.lng)
           };
-          console.log("Setting map center to:", center);
           this.map.setCenter(center);
           this.map.setZoom(14);
         }
@@ -9390,37 +9390,12 @@
         });
       });
       this.scheduleListTargets.forEach((scheduleList) => {
-        console.log("Setting up Sortable for schedule list:", scheduleList);
-        let isUpdatingNumbers = false;
         new sortable_esm_default(scheduleList, {
           group: "shared",
           animation: 150,
           ghostClass: "sortable-ghost",
-          onAdd: (evt) => {
-            if (isUpdatingNumbers)
-              return;
-            console.log("Item added to schedule");
-            const item = evt.item;
-            item.classList.add("schedule-spot-item");
-            item.dataset.day = scheduleList.dataset.day;
-            item.dataset.timeZone = scheduleList.dataset.timeZone;
-            isUpdatingNumbers = true;
-            this.updateAllSpotNumbers();
-            setTimeout(() => {
-              isUpdatingNumbers = false;
-            }, 100);
-          },
           onSort: (evt) => {
-            if (isUpdatingNumbers)
-              return;
-            console.log("Items sorted");
-            isUpdatingNumbers = true;
             this.updateAllSpotNumbers();
-            setTimeout(() => {
-              isUpdatingNumbers = false;
-            }, 100);
-          },
-          onEnd: (evt) => {
           }
         });
       });
@@ -9460,6 +9435,7 @@
       const processedSpotIds = /* @__PURE__ */ new Set();
       const days = Array.from({ length: this.totalDaysValue }, (_, i) => i + 1);
       const timeZones = ["morning", "noon", "night"];
+      const spotOrder = /* @__PURE__ */ new Map();
       days.forEach((day) => {
         timeZones.forEach((timeZone) => {
           this.scheduleListTargets.forEach((list) => {
@@ -9472,9 +9448,9 @@
                 if (!processedSpotIds.has(spotId)) {
                   const badge = spotItem.querySelector("[data-spot-number]");
                   if (badge) {
-                    console.log(`Setting number ${spotNumber} for spot ID: ${spotId}`);
                     badge.textContent = spotNumber.toString();
                     processedSpotIds.add(spotId);
+                    spotOrder.set(spotId, spotNumber);
                     spotNumber++;
                   }
                 }
@@ -9483,7 +9459,7 @@
           });
         });
       });
-      console.log(`Updated numbers for ${processedSpotIds.size} spots`);
+      this.updateMarkerNumbers(spotOrder);
     }
     deleteFromList(event) {
       const item = event.target.closest(".spot-item");
@@ -9497,17 +9473,14 @@
       }
       this.deletedSpotIds.add(spotId);
       document.querySelectorAll(`.spot-item[data-spot-id="${spotId}"]`).forEach((card) => {
-        if (card.closest(".schedule-list")) {
-          card.remove();
-        } else {
-          card.classList.add("d-none");
-        }
+        card.remove();
       });
       if (category && this.temporarySpots[category]) {
         this.temporarySpots[category] = this.temporarySpots[category].filter(
           (spot) => spot.id.toString() !== spotId.toString()
         );
       }
+      this.removeMarker(spotId);
       this.updateAllSpotNumbers();
       event.stopPropagation();
     }
@@ -9566,7 +9539,7 @@
       }
       this.updateSpotsOrder(category);
     }
-    addMarker(spot, category) {
+    addMarker(spot, category, number = null) {
       console.log("Adding marker for:", spot);
       const categoryColors = {
         sightseeing: "#198754",
@@ -9579,27 +9552,31 @@
           lat: parseFloat(spot.lat),
           lng: parseFloat(spot.lng)
         };
-        console.log("Marker position:", position);
         const markerOptions = {
           position,
           map: this.map,
           title: spot.name,
+          label: number ? {
+            text: number.toString(),
+            color: "white",
+            fontSize: "14px",
+            fontWeight: "bold"
+          } : null,
           icon: {
-            // カスタムSVGパスを使用してピン型を作成
             path: "M 12,2 C 8.1340068,2 5,5.1340068 5,9 c 0,5.25 7,13 7,13 0,0 7,-7.75 7,-13 0,-3.8659932 -3.134007,-7 -7,-7 z",
             fillColor: categoryColors[category],
             fillOpacity: 1,
             strokeColor: "white",
             strokeWeight: 2,
-            scale: 1.5,
-            // アンカーポイントを調整して位置を最適化
-            anchor: new google.maps.Point(12, 24)
+            scale: 2,
+            anchor: new google.maps.Point(12, 24),
+            labelOrigin: new google.maps.Point(12, 10)
+            // ラベル（番号）の位置を調整
           }
         };
         const marker = new google.maps.Marker(markerOptions);
         marker.spotId = spot.id;
         this.markers.push(marker);
-        console.log("Marker created:", marker);
         return marker;
       } catch (error2) {
         console.error("Error creating marker:", error2);
@@ -9663,12 +9640,12 @@
         if (marker && marker.spotId) {
           const number = spotOrder.get(marker.spotId.toString());
           try {
-            marker.setLabel({
-              text: number ? number.toString() : "",
+            marker.setLabel(number ? {
+              text: number.toString(),
               color: "white",
               fontSize: "14px",
               fontWeight: "bold"
-            });
+            } : null);
           } catch (error2) {
             console.error("Error updating marker label:", error2, marker);
           }
