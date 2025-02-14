@@ -9218,8 +9218,12 @@
         restaurant: [],
         hotel: []
       };
+      this.currentInfoWindow = null;
     }
     connect() {
+      console.log("Controller connected");
+      console.log("Raw data attribute:", this.element.dataset.spotsRegistrationExistingSpotsValue);
+      console.log("Type of data:", typeof this.element.dataset.spotsRegistrationExistingSpotsValue);
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
           this.initializeController();
@@ -9229,11 +9233,14 @@
       }
     }
     initializeController() {
-      console.log("Initializing controller...");
+      console.log("initializeController started");
+      console.log("existingSpotsValue:", this.existingSpotsValue);
       window.addEventListener("maps-loaded", () => {
+        console.log("maps-loaded event fired");
         this.initializeMap();
       }, { once: true });
       setTimeout(() => {
+        console.log("Timeout callback started");
         this.initializeDragAndDrop();
         this.updateAllSpotNumbers();
         console.log("Initial setup completed");
@@ -9247,6 +9254,7 @@
       this.cleanupMarkers();
     }
     initializeMap() {
+      console.log("initializeMap started");
       if (!window.google || !window.google.maps) {
         console.error("Google Maps API not loaded");
         return;
@@ -9265,11 +9273,15 @@
       };
       try {
         this.map = new google.maps.Map(this.mapTarget, mapOptions);
-        console.log("Map initialized:", this.map);
-        this.setupSearchBox();
-        if (this.existingSpotsValue) {
-          this.loadExistingSpots();
-        }
+        console.log("Map instance created:", this.map);
+        google.maps.event.addListenerOnce(this.map, "idle", () => {
+          console.log("Map idle event fired");
+          this.setupSearchBox();
+          console.log("About to load existing spots:", this.existingSpotsValue);
+          if (this.existingSpotsValue && this.existingSpotsValue.length > 0) {
+            this.loadExistingSpots();
+          }
+        });
       } catch (error2) {
         console.error("Error initializing map:", error2);
       }
@@ -9315,10 +9327,13 @@
       });
     }
     loadExistingSpots() {
+      console.log("loadExistingSpots started");
       if (this.hasExistingSpotsValue) {
         console.log("Loading existing spots:", this.existingSpotsValue);
         const scheduledSpots = this.existingSpotsValue.filter((spot) => spot.schedule);
         const unscheduledSpots = this.existingSpotsValue.filter((spot) => !spot.schedule);
+        console.log("Scheduled spots:", scheduledSpots);
+        console.log("Unscheduled spots:", unscheduledSpots);
         const sortedScheduledSpots = scheduledSpots.sort((a, b) => {
           if (a.schedule.day_number !== b.schedule.day_number) {
             return a.schedule.day_number - b.schedule.day_number;
@@ -9330,24 +9345,24 @@
           return a.schedule.order_number - b.schedule.order_number;
         });
         [...sortedScheduledSpots, ...unscheduledSpots].forEach((spot) => {
+          console.log("Adding marker for spot:", spot);
           const category = spot.category;
           this.temporarySpots[category].push(spot);
           this.addMarker(spot, category);
         });
+        if (sortedScheduledSpots.length > 0) {
+          const firstSpot = sortedScheduledSpots[0];
+          const center = {
+            lat: parseFloat(firstSpot.lat),
+            lng: parseFloat(firstSpot.lng)
+          };
+          console.log("Setting map center to:", center);
+          this.map.setCenter(center);
+          this.map.setZoom(14);
+        }
         Object.keys(this.temporarySpots).forEach((category) => {
           this.updateSpotsList(category);
         });
-        if (sortedScheduledSpots.length > 0) {
-          const firstSpot = sortedScheduledSpots[0];
-          this.map.setCenter({
-            lat: parseFloat(firstSpot.lat),
-            lng: parseFloat(firstSpot.lng)
-          });
-          this.map.setZoom(14);
-        }
-        setTimeout(() => {
-          this.updateAllSpotNumbers();
-        }, 100);
       }
     }
     initializeDragAndDrop() {
@@ -9552,35 +9567,53 @@
       this.updateSpotsOrder(category);
     }
     addMarker(spot, category) {
+      console.log("Adding marker for:", spot);
       const categoryColors = {
         sightseeing: "#198754",
         restaurant: "#ffc107",
         hotel: "#0dcaf0"
       };
       this.removeMarker(spot.id);
-      const markerOptions = {
-        position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
-        map: this.map,
-        label: {
-          text: "",
-          color: "white",
-          fontSize: "14px",
-          fontWeight: "bold"
-        },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: categoryColors[category],
-          fillOpacity: 1,
-          strokeColor: "white",
-          strokeWeight: 2,
-          scale: 15,
-          labelOrigin: new google.maps.Point(0, 0)
-        }
+      try {
+        const position = {
+          lat: parseFloat(spot.lat),
+          lng: parseFloat(spot.lng)
+        };
+        console.log("Marker position:", position);
+        const markerOptions = {
+          position,
+          map: this.map,
+          title: spot.name,
+          icon: {
+            // カスタムSVGパスを使用してピン型を作成
+            path: "M 12,2 C 8.1340068,2 5,5.1340068 5,9 c 0,5.25 7,13 7,13 0,0 7,-7.75 7,-13 0,-3.8659932 -3.134007,-7 -7,-7 z",
+            fillColor: categoryColors[category],
+            fillOpacity: 1,
+            strokeColor: "white",
+            strokeWeight: 2,
+            scale: 1.5,
+            // アンカーポイントを調整して位置を最適化
+            anchor: new google.maps.Point(12, 24)
+          }
+        };
+        const marker = new google.maps.Marker(markerOptions);
+        marker.spotId = spot.id;
+        this.markers.push(marker);
+        console.log("Marker created:", marker);
+        return marker;
+      } catch (error2) {
+        console.error("Error creating marker:", error2);
+        return null;
+      }
+    }
+    // カテゴリーの日本語変換用ヘルパーメソッド
+    categoryToJapanese(category) {
+      const categories = {
+        sightseeing: "\u89B3\u5149\u30B9\u30DD\u30C3\u30C8",
+        restaurant: "\u98DF\u4E8B\u51E6",
+        hotel: "\u5BBF\u6CCA\u5148"
       };
-      const marker = new google.maps.Marker(markerOptions);
-      marker.spotId = spot.id;
-      this.markers.push(marker);
-      return marker;
+      return categories[category] || category;
     }
     createMarkerContent(category, number) {
       const colors = {
@@ -9607,15 +9640,17 @@
     removeMarker(spotId) {
       if (!spotId)
         return;
+      console.log("Removing marker for spot:", spotId);
       const markerIndex = this.markers.findIndex(
         (marker) => marker && marker.spotId && marker.spotId.toString() === spotId.toString()
       );
       if (markerIndex !== -1) {
         const marker = this.markers[markerIndex];
         if (marker) {
+          console.log("Found marker to remove at index:", markerIndex);
           marker.setMap(null);
+          this.markers.splice(markerIndex, 1);
         }
-        this.markers.splice(markerIndex, 1);
       }
     }
     updateMarkerNumbers(spotOrder) {

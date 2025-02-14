@@ -16,10 +16,16 @@ export default class extends Controller {
       restaurant: [],
       hotel: []
     };
+    this.currentInfoWindow = null; // 現在開いている情報ウィンドウを追跡
   }
 
   connect() {
-    // DOMContentLoadedを待つ
+    console.log('Controller connected');
+    // データ属性の生の値を出力
+    console.log('Raw data attribute:', this.element.dataset.spotsRegistrationExistingSpotsValue);
+    // 型も確認
+    console.log('Type of data:', typeof this.element.dataset.spotsRegistrationExistingSpotsValue);
+    
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         this.initializeController();
@@ -30,15 +36,16 @@ export default class extends Controller {
   }
   
   initializeController() {
-    console.log('Initializing controller...');
+    console.log('initializeController started');
+    console.log('existingSpotsValue:', this.existingSpotsValue);  // 追加
     
-    // Google Maps の初期化
     window.addEventListener('maps-loaded', () => {
+      console.log('maps-loaded event fired');  // 追加
       this.initializeMap();
     }, { once: true });
   
-    // 少し遅延を入れて初期化を実行
     setTimeout(() => {
+      console.log('Timeout callback started');  // 追加
       this.initializeDragAndDrop();
       this.updateAllSpotNumbers();
       console.log('Initial setup completed');
@@ -54,6 +61,8 @@ export default class extends Controller {
   }
 
   initializeMap() {
+    console.log('initializeMap started');
+
     if (!window.google || !window.google.maps) {
       console.error('Google Maps API not loaded');
       return;
@@ -74,12 +83,18 @@ export default class extends Controller {
   
     try {
       this.map = new google.maps.Map(this.mapTarget, mapOptions);
-      console.log('Map initialized:', this.map);
-      this.setupSearchBox();
+      console.log('Map instance created:', this.map);
+      
+      // Google Maps APIのロード完了を待ってから実行
+      google.maps.event.addListenerOnce(this.map, 'idle', () => {
+        console.log('Map idle event fired');
+        this.setupSearchBox();
+        console.log('About to load existing spots:', this.existingSpotsValue);
+        if (this.existingSpotsValue && this.existingSpotsValue.length > 0) {
+          this.loadExistingSpots();
+        }
+      });
   
-      if (this.existingSpotsValue) {
-        this.loadExistingSpots();
-      }
     } catch (error) {
       console.error('Error initializing map:', error);
     }
@@ -139,6 +154,8 @@ export default class extends Controller {
   }
 
   loadExistingSpots() {
+    console.log('loadExistingSpots started');
+
     if (this.hasExistingSpotsValue) {
       console.log('Loading existing spots:', this.existingSpotsValue);
       
@@ -146,6 +163,9 @@ export default class extends Controller {
       const scheduledSpots = this.existingSpotsValue.filter(spot => spot.schedule);
       const unscheduledSpots = this.existingSpotsValue.filter(spot => !spot.schedule);
       
+      console.log('Scheduled spots:', scheduledSpots);
+      console.log('Unscheduled spots:', unscheduledSpots);
+  
       // スケジュール済みのスポットを順序付け
       const sortedScheduledSpots = scheduledSpots.sort((a, b) => {
         if (a.schedule.day_number !== b.schedule.day_number) {
@@ -158,32 +178,30 @@ export default class extends Controller {
         return a.schedule.order_number - b.schedule.order_number;
       });
   
-      // すべてのスポットをカテゴリー別に登録
+      // すべてのスポットをマップに表示
       [...sortedScheduledSpots, ...unscheduledSpots].forEach(spot => {
+        console.log('Adding marker for spot:', spot);
         const category = spot.category;
         this.temporarySpots[category].push(spot);
         this.addMarker(spot, category);
       });
   
-      // リストの更新
-      Object.keys(this.temporarySpots).forEach(category => {
-        this.updateSpotsList(category);
-      });
-  
-      // マップの中心設定
+      // マップの中心を設定
       if (sortedScheduledSpots.length > 0) {
         const firstSpot = sortedScheduledSpots[0];
-        this.map.setCenter({
+        const center = {
           lat: parseFloat(firstSpot.lat),
           lng: parseFloat(firstSpot.lng)
-        });
+        };
+        console.log('Setting map center to:', center);
+        this.map.setCenter(center);
         this.map.setZoom(14);
       }
   
-      // 最後に一度だけ番号を更新
-      setTimeout(() => {
-        this.updateAllSpotNumbers();
-      }, 100);
+      // その他の更新処理
+      Object.keys(this.temporarySpots).forEach(category => {
+        this.updateSpotsList(category);
+      });
     }
   }
 
@@ -438,6 +456,8 @@ export default class extends Controller {
   }
 
   addMarker(spot, category) {
+    console.log('Adding marker for:', spot);
+  
     const categoryColors = {
       sightseeing: '#198754',
       restaurant: '#ffc107',
@@ -446,31 +466,51 @@ export default class extends Controller {
   
     this.removeMarker(spot.id);
   
-    const markerOptions = {
-      position: { lat: parseFloat(spot.lat), lng: parseFloat(spot.lng) },
-      map: this.map,
-      label: {
-        text: '',
-        color: 'white',
-        fontSize: '14px',
-        fontWeight: 'bold'
-      },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: categoryColors[category],
-        fillOpacity: 1.0,
-        strokeColor: 'white',
-        strokeWeight: 2,
-        scale: 15,
-        labelOrigin: new google.maps.Point(0, 0)
-      }
+    try {
+      const position = {
+        lat: parseFloat(spot.lat),
+        lng: parseFloat(spot.lng)
+      };
+  
+      console.log('Marker position:', position);
+  
+      const markerOptions = {
+        position: position,
+        map: this.map,
+        title: spot.name,
+        icon: {
+          // カスタムSVGパスを使用してピン型を作成
+          path: 'M 12,2 C 8.1340068,2 5,5.1340068 5,9 c 0,5.25 7,13 7,13 0,0 7,-7.75 7,-13 0,-3.8659932 -3.134007,-7 -7,-7 z',
+          fillColor: categoryColors[category],
+          fillOpacity: 1.0,
+          strokeColor: 'white',
+          strokeWeight: 2,
+          scale: 1.5,
+          // アンカーポイントを調整して位置を最適化
+          anchor: new google.maps.Point(12, 24)
+        }
+      };
+  
+      const marker = new google.maps.Marker(markerOptions);
+      marker.spotId = spot.id;
+      this.markers.push(marker);
+  
+      console.log('Marker created:', marker);
+      return marker;
+    } catch (error) {
+      console.error('Error creating marker:', error);
+      return null;
+    }
+  }
+  
+  // カテゴリーの日本語変換用ヘルパーメソッド
+  categoryToJapanese(category) {
+    const categories = {
+      sightseeing: '観光スポット',
+      restaurant: '食事処',
+      hotel: '宿泊先'
     };
-  
-    const marker = new google.maps.Marker(markerOptions);
-    marker.spotId = spot.id;
-    this.markers.push(marker);
-  
-    return marker;
+    return categories[category] || category;
   }
 
   createMarkerContent(category, number) {
@@ -501,18 +541,19 @@ export default class extends Controller {
   removeMarker(spotId) {
     if (!spotId) return;
   
-    // 既存のマーカーを検索
+    console.log('Removing marker for spot:', spotId);
+    
     const markerIndex = this.markers.findIndex(marker => 
       marker && marker.spotId && marker.spotId.toString() === spotId.toString()
     );
     
-    // マーカーが見つかった場合、削除
     if (markerIndex !== -1) {
       const marker = this.markers[markerIndex];
       if (marker) {
-        marker.setMap(null);  // マップから削除
+        console.log('Found marker to remove at index:', markerIndex);
+        marker.setMap(null);
+        this.markers.splice(markerIndex, 1);
       }
-      this.markers.splice(markerIndex, 1);  // 配列から削除
     }
   }
 

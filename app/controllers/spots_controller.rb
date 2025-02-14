@@ -4,21 +4,25 @@ class SpotsController < ApplicationController
   def new
     @travel = Travel.find(params[:travel_id])
     
+    # @spotsの取得
     @spots = @travel.spots.includes(:schedule).order(:category, :order_number)
     
+    # @schedulesの取得を修正
     @schedules = @travel.spots.includes(:schedule)
                        .where.not(schedules: { id: nil })
                        .order('schedules.day_number ASC, schedules.time_zone ASC, schedules.order_number ASC')
-                       .to_a
-  
+                       .to_a  # 明示的に配列に変換
+    
     @total_days = (@travel.end_date - @travel.start_date).to_i + 1
-  
-    # JSONデータの準備を修正
+    
+    # JSONデータの準備
     @spots_json = @spots.map do |spot|
       {
         id: spot.id,
         name: spot.name,
         category: spot.category,
+        lat: spot.lat.to_f,
+        lng: spot.lng.to_f,
         travel_id: @travel.id,
         schedule: spot.schedule ? {
           id: spot.schedule.id,
@@ -31,6 +35,9 @@ class SpotsController < ApplicationController
   
     # デバッグ出力
     Rails.logger.debug "Prepared spots JSON: #{@spots_json}"
+    Rails.logger.debug "Total spots: #{@spots.count}"
+    Rails.logger.debug "Scheduled spots: #{@schedules.count}"
+    Rails.logger.debug "spots_json.to_json output: #{@spots_json.to_json}"
   end
 
   def register

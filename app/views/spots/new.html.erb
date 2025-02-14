@@ -12,7 +12,8 @@
 <div class="container" 
      data-controller="spots-registration" 
      data-spots-registration-travel-id-value="<%= @travel.id %>"
-     data-spots-registration-total-days-value="<%= @total_days %>">
+     data-spots-registration-total-days-value="<%= @total_days %>"
+     data-spots-registration-existing-spots-value="<%= @spots_json.to_json %>">
 
   <div class="debug-info" style="margin: 20px; padding: 10px; border: 1px solid #ccc;">
     <h4>Debug Info</h4>
@@ -126,10 +127,3 @@
     </button>
   </div>
 </div>
-
-<%= content_tag :div, "", 
-    data: {
-      spots_registration_existing_spots_value: @spots_json
-    },
-    style: "display: none;" 
-%>
