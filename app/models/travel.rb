@@ -3,6 +3,7 @@ class Travel < ApplicationRecord
   has_many :travel_members, dependent: :destroy
   has_many :members, through: :travel_members, source: :user
   has_many :spots, dependent: :destroy
+  has_many :travel_reviews, dependent: :destroy
 
   validates :title, presence: true
   validates :start_date, presence: true

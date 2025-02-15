@@ -224,3 +224,49 @@
     }
   }
 }
+
+//レビューエリア
+.review-section {
+  .card {
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .review-form {
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+  }
+}
+
+//レビュー結果欄エリア
+.reviews-section {
+  .review-card {
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .review-header {
+      .reviewer-name {
+        color: #2c3e50;
+      }
+    }
+
+    .review-content {
+      color: #34495e;
+      
+      p {
+        margin-bottom: 0.5rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}

@@ -1,13 +1,16 @@
 class SpotsController < ApplicationController
   include SchedulesHelper
+
+  before_action :set_travel
+  before_action :check_member
   
   def new
-    @travel = Travel.find(params[:travel_id])
+    @is_planner = @travel.user_id == current_user.id
     
     # @spotsの取得
     @spots = @travel.spots.includes(:schedule).order(:category, :order_number)
     
-    # @schedulesの取得を修正
+    # @schedulesの取得
     @schedules = @travel.spots.includes(:schedule)
                        .where.not(schedules: { id: nil })
                        .order('schedules.day_number ASC, schedules.time_zone ASC, schedules.order_number ASC')
@@ -32,6 +35,9 @@ class SpotsController < ApplicationController
         } : nil
       }
     end
+
+    # レビューの取得
+    @reviews = @travel.travel_reviews.includes(:user).order(created_at: :desc)
   
     # デバッグ出力
     Rails.logger.debug "Prepared spots JSON: #{@spots_json}"
@@ -159,5 +165,15 @@ class SpotsController < ApplicationController
 
   def schedule_params
     params.require(:spot).permit(:day_number, :time_zone)
+  end
+
+  def set_travel
+    @travel = Travel.find(params[:travel_id])
+  end
+
+  def check_member
+    unless @travel.travel_members.exists?(user_id: current_user.id)
+      redirect_to travels_path, alert: 'アクセス権限がありません'
+    end
   end
 end

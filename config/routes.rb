@@ -29,6 +29,9 @@ Rails.application.routes.draw do
         post :save_schedules
       end
     end
+
+    # レビュー用のルーティング
+    resources :travel_reviews, only: [:create]
   end
   
   # ルートパス

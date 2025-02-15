@@ -13,7 +13,8 @@
      data-controller="spots-registration" 
      data-spots-registration-travel-id-value="<%= @travel.id %>"
      data-spots-registration-total-days-value="<%= @total_days %>"
-     data-spots-registration-existing-spots-value="<%= @spots_json.to_json %>">
+     data-spots-registration-existing-spots-value="<%= @spots_json.to_json %>"
+     data-spots-registration-is-planner-value="<%= @is_planner %>">
 
   <div class="debug-info" style="margin: 20px; padding: 10px; border: 1px solid #ccc;">
     <h4>Debug Info</h4>
@@ -39,11 +40,13 @@
           placeholder="ここで検索"
         />
       </div>
-      <div class="register-buttons">
-        <button class="btn btn-success me-2" data-action="spots-registration#registerSpot" data-category="sightseeing">観光登録</button>
-        <button class="btn btn-warning me-2" data-action="spots-registration#registerSpot" data-category="restaurant">食事処登録</button>
-        <button class="btn btn-info" data-action="spots-registration#registerSpot" data-category="hotel">宿泊先登録</button>
-      </div>
+      <% if @is_planner %>
+        <div class="register-buttons">
+          <button class="btn btn-success me-2" data-action="spots-registration#registerSpot" data-category="sightseeing">観光登録</button>
+          <button class="btn btn-warning me-2" data-action="spots-registration#registerSpot" data-category="restaurant">食事処登録</button>
+          <button class="btn btn-info" data-action="spots-registration#registerSpot" data-category="hotel">宿泊先登録</button>
+        </div>
+      <% end %>
     </div>
   </div>
 
@@ -119,11 +122,63 @@
   </div>
 
   <!-- 保存ボタン -->
-  <div class="text-center mt-4 mb-5">
-    <button type="button" 
-            class="btn btn-primary px-5"
-            data-action="spots-registration#saveSchedules">
-      保存
-    </button>
-  </div>
+  <% if @is_planner %>
+    <div class="text-center mt-4 mb-5">
+      <button type="button" 
+              class="btn btn-primary px-5"
+              data-action="spots-registration#saveSchedules">
+        保存
+      </button>
+    </div>
+  <% end %>
+
+  <!-- 幹事以外のメンバーにのみレビュー欄を表示 -->
+  <% unless @is_planner %>
+    <hr class="my-5">
+    <div class="review-section mb-5">
+      <h2 class="text-center mb-4">レビュー</h2>
+      <div class="card">
+        <div class="card-body">
+          <%= form_with model: [@travel, TravelReview.new], local: true, class: "review-form" do |f| %>
+            <div class="mb-3">
+              <%= f.text_area :content, 
+                  class: "form-control", 
+                  rows: 4, 
+                  placeholder: "旅程表への意見をお書きください" %>
+            </div>
+            <div class="text-center">
+              <%= f.submit "コメントする", class: "btn btn-primary px-4" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- 幹事にもレビューを表示するように修正 -->
+  <% if @is_planner && @reviews.any? %>
+    <hr class="my-5">
+    <div class="reviews-section mb-5">
+      <h2 class="text-center mb-4">メンバーからのレビュー</h2>
+      <div class="reviews-container">
+        <% @reviews.each do |review| %>
+          <div class="review-card card mb-3">
+            <div class="card-body">
+              <div class="review-header d-flex justify-content-between align-items-center mb-2">
+                <span class="reviewer-name fw-bold">
+                  <%= review.user.name %>さんのレビュー
+                </span>
+                <small class="text-muted">
+                  <%= l review.created_at, format: :short %>
+                </small>
+              </div>
+              <div class="review-content">
+                <%= simple_format h(review.content) %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>
