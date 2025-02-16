@@ -9818,6 +9818,63 @@
   };
   __publicField(members_controller_default, "targets", ["checkbox", "selectAll"]);
 
+  // app/javascript/controllers/packing_list_form_controller.js
+  var packing_list_form_controller_default = class extends Controller {
+    addItem(event) {
+      event.preventDefault();
+      const itemCount = this.itemsContainerTarget.children.length;
+      const newItem = document.createElement("div");
+      newItem.className = "mb-2";
+      newItem.innerHTML = `<input type="text" name="packing_list[items[${itemCount}]]" class="form-control">`;
+      this.itemsContainerTarget.appendChild(newItem);
+    }
+  };
+  __publicField(packing_list_form_controller_default, "targets", ["itemsContainer"]);
+
+  // app/javascript/controllers/packing_list_check_controller.js
+  var packing_list_check_controller_default = class extends Controller {
+    constructor() {
+      super(...arguments);
+      __publicField(this, "private");
+    }
+    toggleCheck(event) {
+      const itemId = event.target.dataset.itemId;
+      const checked = event.target.checked;
+      fetch(`/packing_lists/${this.getListId()}/packing_items/${itemId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": this.getMetaValue("csrf-token")
+        },
+        body: JSON.stringify({ checked })
+      }).catch((error2) => {
+        console.error("Error:", error2);
+        event.target.checked = !checked;
+      });
+    }
+    clearAll() {
+      if (!confirm("\u5168\u3066\u306E\u30C1\u30A7\u30C3\u30AF\u3092\u5916\u3057\u307E\u3059\u304B\uFF1F"))
+        return;
+      fetch(`/packing_lists/${this.getListId()}/packing_items/clear_all`, {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": this.getMetaValue("csrf-token")
+        }
+      }).then(() => {
+        location.reload();
+      }).catch((error2) => {
+        console.error("Error:", error2);
+      });
+    }
+    getListId() {
+      return window.location.pathname.split("/")[2];
+    }
+    getMetaValue(name) {
+      const element = document.querySelector(`meta[name="${name}"]`);
+      return element.getAttribute("content");
+    }
+  };
+
   // app/javascript/controllers/index.js
   var application = Application.start();
   var DropdownController = class extends Controller {
@@ -9830,6 +9887,8 @@
   application.register("dropdown", DropdownController);
   application.register("spots-registration", spots_registration_controller_default);
   application.register("members", members_controller_default);
+  application.register("packing-list-form", packing_list_form_controller_default);
+  application.register("packing-list-check", packing_list_check_controller_default);
 
   // node_modules/bootstrap/dist/js/bootstrap.esm.js
   var bootstrap_esm_exports = {};

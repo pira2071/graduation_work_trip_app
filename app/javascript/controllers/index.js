@@ -1,7 +1,9 @@
 import { Application } from "@hotwired/stimulus"
 import { Controller } from "@hotwired/stimulus"
 import SpotsRegistrationController from "./spots_registration_controller"
-import MembersController from "./members_controller"  // 追加
+import MembersController from "./members_controller"
+import PackingListFormController from "./packing_list_form_controller"
+import PackingListCheckController from "./packing_list_check_controller"
 
 // Stimulusアプリケーションを開始
 const application = Application.start()
@@ -18,6 +20,8 @@ class DropdownController extends Controller {
 
 application.register("dropdown", DropdownController)
 application.register("spots-registration", SpotsRegistrationController)
-application.register("members", MembersController)  // 追加
+application.register("members", MembersController)
+application.register("packing-list-form", PackingListFormController)
+application.register("packing-list-check", PackingListCheckController)
 
 export { application }

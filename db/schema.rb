@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_15_101712) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_16_035517) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -25,6 +25,23 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_15_101712) do
     t.index ["receiver_id"], name: "index_friendships_on_receiver_id"
     t.index ["requester_id", "receiver_id"], name: "index_friendships_on_requester_id_and_receiver_id", unique: true
     t.index ["requester_id"], name: "index_friendships_on_requester_id"
+  end
+
+  create_table "packing_items", force: :cascade do |t|
+    t.string "name", null: false
+    t.boolean "checked", default: false
+    t.bigint "packing_list_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["packing_list_id"], name: "index_packing_items_on_packing_list_id"
+  end
+
+  create_table "packing_lists", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_packing_lists_on_user_id"
   end
 
   create_table "schedules", force: :cascade do |t|
@@ -97,6 +114,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_15_101712) do
 
   add_foreign_key "friendships", "users", column: "receiver_id"
   add_foreign_key "friendships", "users", column: "requester_id"
+  add_foreign_key "packing_items", "packing_lists"
+  add_foreign_key "packing_lists", "users"
   add_foreign_key "schedules", "spots"
   add_foreign_key "spots", "travels"
   add_foreign_key "travel_members", "travels"

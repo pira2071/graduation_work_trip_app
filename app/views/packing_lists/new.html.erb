@@ -1,0 +1,32 @@
+<div class="container mt-4" data-controller="packing-list-form">
+  <h1>持物リスト登録</h1>
+
+  <%= form_with(model: @packing_list, local: true, class: "mt-4") do |f| %>
+    <div class="mb-4">
+      <%= f.label :name, "リスト名：", class: "form-label" %>
+      <%= f.text_field :name, class: "form-control" %>
+    </div>
+
+    <div class="mb-4">
+      <div class="d-flex align-items-center mb-2">
+        <label class="form-label mb-0">リスト内容</label>
+        <button type="button" class="btn btn-link py-0 ms-2" id="add-item-btn" data-action="click->packing-list-form#addItem">
+          <i class="bi bi-plus-circle"></i>
+        </button>
+      </div>
+
+      <div id="items-container" data-packing-list-form-target="itemsContainer">
+        <% 10.times do |i| %>
+          <div class="mb-2">
+            <%= f.text_field "items[]", name: "packing_list[items][#{i}]", class: "form-control" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <%= link_to "戻る", packing_lists_path, class: "btn btn-secondary me-2" %>
+      <%= f.submit "登録", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

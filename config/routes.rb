@@ -37,6 +37,7 @@ Rails.application.routes.draw do
   # ルートパス
   root 'static_pages#top'
 
+  # 友達管理関連
   resources :friendships, only: [:index, :create] do
     member do
       patch :accept
@@ -44,4 +45,13 @@ Rails.application.routes.draw do
     end
   end
   get 'friend_requests', to: 'friendships#requests', as: :friend_requests
+
+  # 持物リスト関連
+  resources :packing_lists, only: [:index, :new, :create, :show] do
+    resources :packing_items, only: [:update] do
+      collection do
+        post :clear_all
+      end
+    end
+  end
 end
