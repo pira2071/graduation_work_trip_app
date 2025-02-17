@@ -44,6 +44,10 @@ Rails.application.routes.draw do
   # ルートパス
   root 'static_pages#top'
 
+  # 利用規約とプライバシーポリシー用のルート
+  get 'privacy_policy', to: 'static_pages#privacy_policy'
+  get 'terms_of_service', to: 'static_pages#terms_of_service'
+
   # 友達管理関連
   resources :friendships, only: [:index, :create] do
     member do

@@ -4,5 +4,7 @@ class StaticPagesController < ApplicationController
 
   def top; end
 
+  def privacy_policy; end
+
   def dashboard; end  # ログインユーザー専用のダッシュボード画面
 end
