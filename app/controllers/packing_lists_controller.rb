@@ -28,6 +28,12 @@ class PackingListsController < ApplicationController
     @packing_list = current_user.packing_lists.find(params[:id])
     @items = @packing_list.packing_items.order(:created_at)
   end
+
+  def destroy
+    @packing_list = current_user.packing_lists.find(params[:id])
+    @packing_list.destroy
+    redirect_to packing_lists_path, success: '持物リストを削除しました'
+  end
     
   private
     

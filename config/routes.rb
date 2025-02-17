@@ -54,7 +54,7 @@ Rails.application.routes.draw do
   get 'friend_requests', to: 'friendships#requests', as: :friend_requests
 
   # 持物リスト関連
-  resources :packing_lists, only: [:index, :new, :create, :show] do
+  resources :packing_lists, only: [:index, :new, :create, :show, :destroy] do
     resources :packing_items, only: [:update] do
       collection do
         post :clear_all
