@@ -69,3 +69,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "carrierwave", "~> 3.1"
+
+gem "mini_magick", "~> 5.1"

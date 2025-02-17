@@ -9875,6 +9875,99 @@
     }
   };
 
+  // app/javascript/controllers/photo_controller.js
+  var photo_controller_default = class extends Controller {
+    upload(event) {
+      const files = event.target.files;
+      const dayNumber = event.target.dataset.photoDayNumber;
+      if (!files.length)
+        return;
+      const formData = new FormData();
+      formData.append("photo[image]", files[0]);
+      formData.append("photo[day_number]", dayNumber);
+      const token = document.querySelector('meta[name="csrf-token"]').content;
+      fetch(`/travels/${this.travelIdValue}/photos`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRF-Token": token
+        }
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      }).then((data) => {
+        if (data.photo) {
+          this.addPhotoToGrid(data.photo, dayNumber);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      }).catch((error2) => {
+        console.error("Upload error:", error2);
+        alert("\u5199\u771F\u306E\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002");
+      });
+      event.target.value = "";
+    }
+    addPhotoToGrid(photo, dayNumber) {
+      const grid = document.querySelector(`#day-${dayNumber}-photos`);
+      if (!grid.style.cssText) {
+        grid.style.cssText = "display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); justify-content: start;";
+      }
+      const container = document.createElement("div");
+      container.className = "photo-container";
+      container.style.cssText = "width: 150px; height: 200px; position: relative;";
+      container.dataset.photoId = photo.id;
+      const img = document.createElement("img");
+      img.src = photo.url;
+      img.className = "rounded cursor-pointer";
+      img.style.cssText = "width: 150px; height: 150px; object-fit: cover;";
+      img.dataset.bsToggle = "modal";
+      img.dataset.bsTarget = "#photoModal";
+      img.dataset.action = "click->photo#showInModal";
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.dataset.action = "click->photo#deletePhoto";
+      deleteBtn.dataset.photoId = photo.id;
+      deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+      container.appendChild(img);
+      container.appendChild(deleteBtn);
+      grid.appendChild(container);
+    }
+    deletePhoto(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const photoId = event.currentTarget.dataset.photoId;
+      const container = event.currentTarget.closest(".photo-container");
+      if (confirm("\u3053\u306E\u5199\u771F\u3092\u524A\u9664\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F")) {
+        fetch(`/travels/${this.travelIdValue}/photos/${photoId}`, {
+          method: "DELETE",
+          headers: {
+            "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+          },
+          credentials: "same-origin"
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Delete failed");
+          }
+          container.remove();
+        }).catch((error2) => {
+          console.error("Error:", error2);
+          alert("\u5199\u771F\u306E\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        });
+      }
+    }
+    showInModal(event) {
+      event.preventDefault();
+      const imageUrl = event.currentTarget.src;
+      document.querySelector("#modalImage").src = imageUrl;
+    }
+  };
+  __publicField(photo_controller_default, "targets", ["deleteButton"]);
+  __publicField(photo_controller_default, "values", {
+    travelId: String
+  });
+
   // app/javascript/controllers/index.js
   var application = Application.start();
   var DropdownController = class extends Controller {
@@ -9889,6 +9982,7 @@
   application.register("members", members_controller_default);
   application.register("packing-list-form", packing_list_form_controller_default);
   application.register("packing-list-check", packing_list_check_controller_default);
+  application.register("photo", photo_controller_default);
 
   // node_modules/bootstrap/dist/js/bootstrap.esm.js
   var bootstrap_esm_exports = {};

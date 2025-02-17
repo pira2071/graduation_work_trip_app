@@ -1,0 +1,57 @@
+<div class="container mt-4" data-controller="photo" data-photo-travel-id-value="<%= @travel.id %>">
+  <h1>フォトブック</h1>
+
+  <% @travel_days.times do |day| %>
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><%= day + 1 %>日目</h5>
+        <label class="btn btn-primary" for="photo-upload-<%= day + 1 %>">
+          <i class="bi bi-plus-circle"></i>
+          <%= file_field_tag "photos[]", 
+              id: "photo-upload-#{day + 1}", 
+              class: "d-none",
+              multiple: true,
+              data: {
+                action: "change->photo#upload",
+                photo_day_number: day + 1
+              } %>
+        </label>
+      </div>
+
+      <div class="card-body">
+      <div class="photos-grid" id="day-<%= day + 1 %>-photos" style="display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); justify-content: start;">
+          <% if @photos_by_day[day + 1].present? %>
+            <% @photos_by_day[day + 1].each do |photo| %>
+              <div class="photo-container" data-photo-id="<%= photo.id %>" style="width: 150px; height: 200px; position: relative; margin: 0 auto;">
+                <%= image_tag photo.image.url, 
+                    class: "rounded cursor-pointer",
+                    style: "width: 150px; height: 150px; object-fit: cover;",
+                    data: {
+                      bs_toggle: "modal",
+                      bs_target: "#photoModal",
+                      action: "click->photo#showInModal"
+                    } %>
+                <button class="delete-btn" 
+                        data-action="click->photo#deletePhoto" 
+                        data-photo-target="deleteButton"
+                        data-photo-id="<%= photo.id %>">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class="modal fade" id="photoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <img src="" class="w-100" id="modalImage">
+      </div>
+    </div>
+  </div>
+</div>

@@ -32,6 +32,13 @@ Rails.application.routes.draw do
 
     # レビュー用のルーティング
     resources :travel_reviews, only: [:create]
+
+    # 写真共有用のルーティング
+    resources :photos, only: [:index, :create, :destroy] do
+      collection do
+        get :day
+      end
+    end
   end
   
   # ルートパス
