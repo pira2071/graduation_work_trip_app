@@ -48,6 +48,10 @@ Rails.application.routes.draw do
   get 'privacy_policy', to: 'static_pages#privacy_policy'
   get 'terms_of_service', to: 'static_pages#terms_of_service'
 
+  # お問い合わせフォーム用のルート
+  get 'contact_us', to: 'contacts#new'
+  post 'contact_us', to: 'contacts#create'
+
   # 友達管理関連
   resources :friendships, only: [:index, :create] do
     member do

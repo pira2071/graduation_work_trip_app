@@ -16,9 +16,12 @@ Rails.application.configure do
  }
 
  # アセット設定
- config.assets.compile = false
- config.assets.digest = true
- config.serve_static_files = true
+ #config.assets.compile = false(削除・念のためコメントアウト)
+ #config.assets.digest = true（同上）
+ #config.serve_static_files = true（同上）
+ config.assets.compile = true
+ config.assets.debug = false
+ config.public_file_server.enabled = true
  
  # ストレージ設定
  config.active_storage.service = :local
@@ -41,12 +44,22 @@ Rails.application.configure do
    protocol: 'https'
  }
 
+ # smtp設定を追加
+ config.action_mailer.smtp_settings = {
+  address:              'smtp.gmail.com',
+  port:                 587,
+  domain:              'gmail.com',
+  user_name:           ENV['SMTP_USERNAME'],
+  password:            ENV['SMTP_PASSWORD'],
+  authentication:       'plain',
+  enable_starttls_auto: true
+ }
+
  # 国際化設定
  config.i18n.fallbacks = true
 
  # データベース設定
  config.active_record.dump_schema_after_migration = false
- config.active_record.attributes_for_inspect = [ :id ]
 
  # ホスト認証設定
  config.hosts << "tri-planner.com"  # あなたのドメイン名

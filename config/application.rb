@@ -34,12 +34,13 @@ module TravelApp
     config.assets.enabled = true
     config.assets.version = '1.0'
 
-    config.assets.compile = true
-    config.assets.debug = true
-    config.assets.initialize_on_precompile = false
-
     # Google Maps APIキーを設定
     config.x.google_maps_api_key = ENV['GOOGLE_MAPS_API_KEY']
+
+    # 環境変数読み込み
+    if Rails.env.development? || Rails.env.test? || Rails.env.production?
+      Dotenv::Railtie.load
+    end
 
   end
 end

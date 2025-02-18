@@ -73,3 +73,5 @@ end
 gem "carrierwave", "~> 3.1"
 
 gem "mini_magick", "~> 5.1"
+
+gem 'dotenv-rails'
