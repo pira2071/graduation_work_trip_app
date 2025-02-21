@@ -4,7 +4,7 @@
 # Available submodules are: :user_activation, :http_basic_auth, :remember_me,
 # :reset_password, :session_timeout, :brute_force_protection, :activity_logging,
 # :magic_login, :external
-Rails.application.config.sorcery.submodules = []
+Rails.application.config.sorcery.submodules = [:reset_password]
 
 # Here you can configure each submodule's features.
 Rails.application.config.sorcery.configure do |config|
@@ -382,7 +382,14 @@ Rails.application.config.sorcery.configure do |config|
     #
     # user.prevent_non_active_users_to_login =
 
-    # -- reset_password --
+    # パスワードリセット関連の設定
+    user.reset_password_token_attribute_name = :reset_password_token
+    user.reset_password_token_expires_at_attribute_name = :reset_password_token_expires_at
+    user.reset_password_email_sent_at_attribute_name = :reset_password_email_sent_at
+    user.reset_password_expiration_period = 24.hours
+    user.reset_password_time_between_emails = nil
+    user.reset_password_mailer = UserMailer
+    user.reset_password_email_method_name = :reset_password_email
     # Password reset token attribute name.
     # Default: `:reset_password_token`
     #

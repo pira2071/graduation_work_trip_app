@@ -52,6 +52,9 @@ Rails.application.routes.draw do
   get 'contact_us', to: 'contacts#new'
   post 'contact_us', to: 'contacts#create'
 
+  # パスワードリセット用のルート
+  resources :password_resets, only: [:new, :create, :edit, :update]
+
   # 友達管理関連
   resources :friendships, only: [:index, :create] do
     member do
