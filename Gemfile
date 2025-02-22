@@ -77,3 +77,5 @@ gem "mini_magick", "~> 5.1"
 gem 'dotenv-rails'
 
 gem 'meta-tags'
+
+gem 'ransack'

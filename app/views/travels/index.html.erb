@@ -6,6 +6,22 @@
     </ol>
   </nav>
 
+  <!-- 検索フォーム -->
+  <div class="search-form">
+    <%= search_form_for @q, html: { class: "position-relative" } do |f| %>
+      <div class="input-group">
+        <%= f.search_field :title_cont, 
+            class: "form-control search-autocomplete",
+            placeholder: "プランのタイトルで検索...",
+            data: { 
+              controller: "search-autocomplete",
+              search_autocomplete_url_value: travels_path(format: :json)
+            } %>
+        <%= link_to "クリア", travels_path, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+
   <% if @travels.any? %>
     <div class="row">
       <% @travels.each do |travel| %>

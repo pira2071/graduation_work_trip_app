@@ -2,7 +2,22 @@ class TravelsController < ApplicationController
   before_action :set_travel, only: %i[show edit update destroy]
 
   def index
-    @travels = current_user.all_travels.includes(:user)
+    @q = current_user.all_travels.ransack(params[:q])
+    @travels = @q.result(distinct: true).includes(:user)
+  
+    respond_to do |format|
+      format.html
+      format.json { 
+        Rails.logger.debug "Search params: #{params[:q]}" # 検索パラメータ確認用
+        Rails.logger.debug "Search results: #{@travels.map(&:title)}" # 検索結果確認用
+        render json: @travels.map { |travel| 
+          { 
+            id: travel.id, 
+            title: travel.title 
+          } 
+        } 
+      }
+    end
   end
 
   def show

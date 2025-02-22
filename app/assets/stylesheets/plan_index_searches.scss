@@ -1,0 +1,41 @@
+.search-form {
+  width: 100%;
+  margin-bottom: 1rem;
+
+  form {
+    width: 100%;
+  }
+
+  .input-group {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .form-control {
+    flex-grow: 1;
+    margin-right: 8px;
+  }
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-top: 2px;
+  background-color: white;  // 背景色を追加
+  border: 1px solid rgba(0,0,0,.125);  // 境界線を追加
+  border-radius: 0.25rem;  // 角を丸く
+  
+  .list-group-item {
+    cursor: pointer;  // カーソルをポインターに
+    &:hover {
+      background-color: #f8f9fa;  // ホバー時の背景色
+    }
+  }
+}

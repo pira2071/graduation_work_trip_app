@@ -13,6 +13,14 @@ class Travel < ApplicationRecord
 
   attr_accessor :member_names
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[title]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    []
+  end
+
   private
 
   def end_date_after_start_date
