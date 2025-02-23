@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_18_103919) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_23_011114) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -25,6 +25,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_18_103919) do
     t.index ["receiver_id"], name: "index_friendships_on_receiver_id"
     t.index ["requester_id", "receiver_id"], name: "index_friendships_on_requester_id_and_receiver_id", unique: true
     t.index ["requester_id"], name: "index_friendships_on_requester_id"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "recipient_id", null: false
+    t.string "action", null: false
+    t.string "notifiable_type", null: false
+    t.bigint "notifiable_id", null: false
+    t.boolean "read", default: false, null: false
+    t.datetime "read_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["recipient_id", "read"], name: "index_notifications_on_recipient_id_and_read"
+    t.index ["recipient_id"], name: "index_notifications_on_recipient_id"
   end
 
   create_table "packing_items", force: :cascade do |t|
@@ -130,6 +144,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_18_103919) do
 
   add_foreign_key "friendships", "users", column: "receiver_id"
   add_foreign_key "friendships", "users", column: "requester_id"
+  add_foreign_key "notifications", "users", column: "recipient_id"
   add_foreign_key "packing_items", "packing_lists"
   add_foreign_key "packing_lists", "users"
   add_foreign_key "photos", "travels"

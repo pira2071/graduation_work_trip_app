@@ -72,4 +72,7 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  # 通知関連
+  resources :notifications, only: [:index, :destroy]
 end

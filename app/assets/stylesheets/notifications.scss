@@ -1,0 +1,35 @@
+// app/assets/stylesheets/notifications.scss
+.notification-badge {
+  font-size: 0.75rem;
+  padding: 0.25em 0.4em;
+  transform: translate(-50%, -50%) !important;
+}
+
+.notification-menu {
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+
+  .notification-items {
+    max-height: 350px;
+    overflow-y: auto;
+  }
+
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+    white-space: normal;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.text-muted {
+      background-color: #f8f9fa;
+    }
+
+    &:hover {
+      background-color: #e9ecef;
+    }
+  }
+}

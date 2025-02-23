@@ -22,6 +22,9 @@ class User < ApplicationRecord
            class_name: 'Friendship',
            foreign_key: 'receiver_id',
            dependent: :destroy
+  has_many :notifications, 
+           foreign_key: :recipient_id, 
+           dependent: :destroy
   
   # フレンドを取得するためのメソッド
   def friends
@@ -53,5 +56,10 @@ class User < ApplicationRecord
     Travel.where('user_id = :user_id OR id IN (:participating_ids)', 
                 user_id: id, 
                 participating_ids: participating_travels.pluck(:id))
+  end
+
+  # 未読の通知を取得するメソッド
+  def unread_notifications_count
+    notifications.unread.count
   end
 end

@@ -17,7 +17,25 @@
           <li class="nav-item">
             <%= link_to "持物リスト", packing_lists_path, class: "nav-link" %>
           </li>
+
+          <!-- 通知ドロップダウン -->
+          <li class="nav-item dropdown" data-controller="notification">
+            <button class="nav-link dropdown-toggle position-relative" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false">
+              <i class="bi bi-bell"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
+                    data-notification-target="count">
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notification-menu" 
+                data-notification-target="list">
+              <!-- 通知アイテムがJSで挿入される -->
+            </div>
+          </li>
           
+          <!-- 設定ドロップダウン -->
           <li class="nav-item dropdown" data-controller="dropdown">
             <button class="nav-link dropdown-toggle" 
                     type="button" 

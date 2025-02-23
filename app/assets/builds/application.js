@@ -10015,6 +10015,90 @@
     url: String
   });
 
+  // app/javascript/controllers/notification_controller.js
+  var notification_controller_default = class extends Controller {
+    connect() {
+      this.loadNotifications();
+      this.startPolling();
+    }
+    disconnect() {
+      this.stopPolling();
+    }
+    async loadNotifications() {
+      try {
+        const response = await fetch("/notifications");
+        const notifications = await response.json();
+        this.updateNotificationCount(notifications);
+        this.updateNotificationList(notifications);
+      } catch (error2) {
+        console.error("Error loading notifications:", error2);
+      }
+    }
+    updateNotificationCount(notifications) {
+      const count = notifications.length;
+      this.countTarget.textContent = count || "";
+      this.countTarget.classList.toggle("d-none", count === 0);
+    }
+    updateNotificationList(notifications) {
+      const list = this.listTarget;
+      if (notifications.length === 0) {
+        list.innerHTML = '<div class="dropdown-item text-muted">\u901A\u77E5\u306F\u3042\u308A\u307E\u305B\u3093</div>';
+        return;
+      }
+      list.innerHTML = notifications.map((notification) => this.renderNotification(notification)).join("");
+    }
+    renderNotification(notification) {
+      return `
+      <a href="${notification.url}" 
+         class="dropdown-item"
+         data-notification-id="${notification.id}"
+         data-action="click->notification#handleNotificationClick">
+        <div class="d-flex align-items-center">
+          <div class="flex-grow-1">
+            <div class="notification-message">${notification.message}</div>
+            <small class="text-muted">${notification.created_at}</small>
+          </div>
+        </div>
+      </a>
+    `;
+    }
+    async handleNotificationClick(event) {
+      event.preventDefault();
+      const notificationId = event.currentTarget.dataset.notificationId;
+      const url = event.currentTarget.href;
+      try {
+        const response = await fetch(`/notifications/${notificationId}`, {
+          method: "DELETE",
+          headers: {
+            "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content,
+            "Content-Type": "application/json"
+          }
+        });
+        if (response.ok) {
+          await this.loadNotifications();
+          window.location.href = url;
+        }
+      } catch (error2) {
+        console.error("Error deleting notification:", error2);
+        window.location.href = url;
+      }
+    }
+    startPolling() {
+      this.pollingId = setInterval(() => {
+        this.loadNotifications();
+      }, this.pollIntervalValue);
+    }
+    stopPolling() {
+      if (this.pollingId) {
+        clearInterval(this.pollingId);
+      }
+    }
+  };
+  __publicField(notification_controller_default, "targets", ["count", "list"]);
+  __publicField(notification_controller_default, "values", {
+    pollInterval: { type: Number, default: 5e3 }
+  });
+
   // app/javascript/controllers/index.js
   var application = Application.start();
   var DropdownController = class extends Controller {
@@ -10031,6 +10115,7 @@
   application.register("packing-list-check", packing_list_check_controller_default);
   application.register("photo", photo_controller_default);
   application.register("search-autocomplete", search_autocomplete_controller_default);
+  application.register("notification", notification_controller_default);
 
   // node_modules/bootstrap/dist/js/bootstrap.esm.js
   var bootstrap_esm_exports = {};
