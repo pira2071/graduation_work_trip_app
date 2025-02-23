@@ -121,14 +121,47 @@
     <% end %>
   </div>
 
-  <!-- 保存ボタン -->
+  <!-- 保存ボタン部分 -->
   <% if @is_planner %>
     <div class="text-center mt-4 mb-5">
       <button type="button" 
-              class="btn btn-primary px-5"
+              class="btn btn-primary px-4 me-2"
               data-action="spots-registration#saveSchedules">
         保存
       </button>
+
+      <!-- メンバーに通知のドロップダウンボタン -->
+      <div class="btn-group">
+        <button type="button" 
+                class="btn btn-info dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          メンバーに通知
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <button class="dropdown-item" 
+                    data-action="spots-registration#sendNotification"
+                    data-notification-type="itinerary_proposed">
+              計画案の共有・レビュー依頼
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item" 
+                    data-action="spots-registration#sendNotification"
+                    data-notification-type="itinerary_modified">
+              修正版の共有・レビュー依頼
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item" 
+                    data-action="spots-registration#sendNotification"
+                    data-notification-type="itinerary_confirmed">
+              確定版の共有
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   <% end %>
 

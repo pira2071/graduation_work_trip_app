@@ -9671,7 +9671,7 @@
       </div>
     `;
     }
-    saveSchedules() {
+    async saveSchedules() {
       const schedules = [];
       const deletedSpots = Array.from(this.deletedSpotIds || []);
       this.scheduleListTargets.forEach((list) => {
@@ -9695,60 +9695,27 @@
         schedules,
         deleted_spot_ids: deletedSpots
       };
-      fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify(saveData)
-      }).then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(data.message || "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u306E\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-          });
-        }
-        return response.json();
-      }).then((data) => {
+      try {
+        const response = await fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+          },
+          body: JSON.stringify(saveData)
+        });
+        const data = await response.json();
         if (data.success) {
-          alert("\u65C5\u7A0B\u8868\u3092\u4FDD\u5B58\u3057\u307E\u3057\u305F");
+          alert(data.message);
           this.deletedSpotIds = /* @__PURE__ */ new Set();
           window.location.href = `/travels/${this.travelIdValue}`;
         } else {
           throw new Error(data.message || "\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
         }
-      }).catch((error2) => {
+      } catch (error2) {
         console.error("Save error:", error2);
         alert("\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
-      });
-    }
-    saveSchedulesWithServer(schedules) {
-      console.log("saveSchedulesWithServer called with:", schedules);
-      fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ schedules })
-      }).then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(data.message || "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u306E\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-          });
-        }
-        return response.json();
-      }).then((data) => {
-        if (data.success) {
-          alert("\u65C5\u7A0B\u8868\u3092\u4FDD\u5B58\u3057\u307E\u3057\u305F");
-          window.location.href = `/travels/${this.travelIdValue}`;
-        } else {
-          throw new Error(data.message || "\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-        }
-      }).catch((error2) => {
-        console.error("Save error:", error2);
-        alert("\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
-      });
+      }
     }
     showSuccessMessage(message = "") {
       if (message) {
@@ -9792,6 +9759,28 @@
           return "info";
         default:
           return "secondary";
+      }
+    }
+    async sendNotification(event) {
+      const notificationType = event.target.dataset.notificationType;
+      try {
+        const response = await fetch(`/travels/${this.travelIdValue}/spots/create_notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector('[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ notification_type: notificationType })
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "\u901A\u77E5\u306E\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        }
+        const data = await response.json();
+        alert(data.message);
+      } catch (error2) {
+        console.error("Notification error:", error2);
+        alert("\u901A\u77E5\u306E\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
       }
     }
   };

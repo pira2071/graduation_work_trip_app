@@ -574,7 +574,7 @@ export default class extends Controller {
     `;
   }
 
-  saveSchedules() {
+  async saveSchedules() {
     const schedules = [];
     const deletedSpots = Array.from(this.deletedSpotIds || []);
     
@@ -584,7 +584,6 @@ export default class extends Controller {
       const timeZone = list.dataset.timeZone;
       
       Array.from(list.children).forEach((spotItem, index) => {
-        // display: noneの要素は除外
         if (spotItem.style.display === 'none') return;
   
         const spotId = spotItem.dataset.spotId;
@@ -599,80 +598,35 @@ export default class extends Controller {
       });
     });
   
-    // サーバーに送信するデータ
     const saveData = {
       schedules: schedules,
       deleted_spot_ids: deletedSpots
     };
   
-    // サーバーへの保存処理
-    fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-      },
-      body: JSON.stringify(saveData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(data => {
-          throw new Error(data.message || 'スケジュールの保存に失敗しました');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
+    try {
+      const response = await fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify(saveData)
+      });
+  
+      const data = await response.json();
+      
       if (data.success) {
-        alert('旅程表を保存しました');
-        // 削除済みIDをクリア
+        alert(data.message);
         this.deletedSpotIds = new Set();
-        // プラン詳細画面へ遷移
         window.location.href = `/travels/${this.travelIdValue}`;
       } else {
         throw new Error(data.message || '保存に失敗しました');
       }
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Save error:', error);
       alert('保存に失敗しました: ' + error.message);
-    });
+    }
   }
-  
-  saveSchedulesWithServer(schedules) {
-    console.log('saveSchedulesWithServer called with:', schedules); // デバッグログ
-    
-    fetch(`/travels/${this.travelIdValue}/spots/save_schedules`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ schedules: schedules })
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(data => {
-          throw new Error(data.message || 'スケジュールの保存に失敗しました');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.success) {
-        alert('旅程表を保存しました');
-        // プラン詳細画面へ遷移
-        window.location.href = `/travels/${this.travelIdValue}`;
-      } else {
-        throw new Error(data.message || '保存に失敗しました');
-      }
-    })
-    .catch(error => {
-      console.error('Save error:', error);
-      alert('保存に失敗しました: ' + error.message);
-    });
-  }
-  
 
   showSuccessMessage(message = '') {
     if (message) {
@@ -716,6 +670,32 @@ export default class extends Controller {
       case 'restaurant': return 'warning';
       case 'hotel': return 'info';
       default: return 'secondary';
+    }
+  }
+
+  async sendNotification(event) {
+    const notificationType = event.target.dataset.notificationType;
+    
+    try {
+      const response = await fetch(`/travels/${this.travelIdValue}/spots/create_notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ notification_type: notificationType })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '通知の送信に失敗しました');
+      }
+  
+      const data = await response.json();
+      alert(data.message);
+    } catch (error) {
+      console.error('Notification error:', error);
+      alert('通知の送信に失敗しました: ' + error.message);
     }
   }
 }

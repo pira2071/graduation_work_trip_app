@@ -157,6 +157,34 @@ class SpotsController < ApplicationController
     head :unprocessable_entity
   end
 
+  def create_notification
+    @travel = Travel.find(params[:travel_id])
+    
+    begin
+      ActiveRecord::Base.transaction do
+        @travel.travel_members.where(role: :guest).each do |member|
+          # ここでNotificationを作成
+          Notification.create!(
+            recipient: member.user,
+            notifiable: @travel,
+            action: params[:notification_type]  # actionだけを保存
+          )
+        end
+        
+        render json: { 
+          success: true, 
+          message: '通知を送信しました'
+        }
+      end
+    rescue => e
+      Rails.logger.error "Notification creation error: #{e.message}"
+      render json: { 
+        success: false, 
+        error: e.message 
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def spot_params

@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       collection do
         post :register
         post :save_schedules
+        post :create_notification
       end
       member do
         patch :update_order

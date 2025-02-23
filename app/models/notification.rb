@@ -5,10 +5,5 @@ class Notification < ApplicationRecord
   validates :action, presence: true
   validates :recipient_id, presence: true
 
-  scope :unread, -> { where(read: false) }
-  scope :recent, -> { order(created_at: :desc).limit(10) }
-
-  def mark_as_read!
-    update!(read: true, read_at: Time.current)
-  end
+  scope :recent, -> { order(created_at: :desc) }
 end
