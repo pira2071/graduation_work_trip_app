@@ -17,6 +17,7 @@ services:
     environment:
       RAILS_ENV: development
       TZ: Asia/Tokyo
+      RAILS_FORCE_SSL: 'true'
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE}
       POSTGRES_USERNAME: ${POSTGRES_USERNAME}
