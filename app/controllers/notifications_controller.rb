@@ -30,7 +30,7 @@ class NotificationsController < ApplicationController
     case notification.action
     when 'friend_request'
       friendships_path
-    when 'itinerary_proposed', 'itinerary_modified', 'itinerary_confirmed'  # 新しい通知タイプを追加
+    when 'itinerary_proposed', 'itinerary_modified', 'itinerary_confirmed', 'review_submitted'
       new_travel_spot_path(notification.notifiable)
     else
       root_path
@@ -49,6 +49,8 @@ class NotificationsController < ApplicationController
       "旅程表が修正されました。確認してレビューしてください。"
     when 'itinerary_confirmed'
       "旅程表が確定しました。確認してください。"
+    when 'review_submitted'
+      "#{notification.notifiable.travel_reviews.last.user.name}さんから旅程表に対するレビューがありました。"
     else
       "旅程表が更新されました"
     end

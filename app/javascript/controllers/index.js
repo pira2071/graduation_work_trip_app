@@ -7,6 +7,7 @@ import PackingListCheckController from "./packing_list_check_controller"
 import PhotoController from "./photo_controller"
 import SearchAutocompleteController from "./search_autocomplete_controller"
 import NotificationController from "./notification_controller"
+import TravelLinkController from "./travel_link_controller"
 
 // Stimulusアプリケーションを開始
 const application = Application.start()
@@ -29,5 +30,6 @@ application.register("packing-list-check", PackingListCheckController)
 application.register("photo", PhotoController)
 application.register("search-autocomplete", SearchAutocompleteController)
 application.register("notification", NotificationController)
+application.register("travel-link", TravelLinkController)
 
 export { application }

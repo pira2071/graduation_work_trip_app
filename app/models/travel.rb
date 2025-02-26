@@ -5,6 +5,7 @@ class Travel < ApplicationRecord
   has_many :spots, dependent: :destroy
   has_many :travel_reviews, dependent: :destroy
   has_many :photos, dependent: :destroy
+  has_many :notifications, as: :notifiable, dependent: :destroy
 
   validates :title, presence: true
   validates :start_date, presence: true
@@ -19,6 +20,10 @@ class Travel < ApplicationRecord
 
   def self.ransackable_associations(auth_object = nil)
     []
+  end
+
+  def shared?
+    notifications.exists?(action: ['itinerary_proposed', 'itinerary_modified', 'itinerary_confirmed'])
   end
 
   private

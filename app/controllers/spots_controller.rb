@@ -6,6 +6,12 @@ class SpotsController < ApplicationController
   
   def new
     @is_planner = @travel.user_id == current_user.id
+
+    unless @is_planner || @travel.shared?
+      flash[:notice] = "旅のしおりは幹事が現在作成中です。"
+      redirect_to travel_path(@travel)
+      return
+    end
     
     # @spotsの取得
     @spots = @travel.spots.includes(:schedule).order(:category, :order_number)

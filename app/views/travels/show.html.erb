@@ -30,7 +30,14 @@
   <div class="row">
     <div class="col-md-4">
       <div class="nav flex-column nav-pills">
-        <%= link_to '旅のしおり', new_travel_spot_path(@travel), class: 'nav-link' %>
+        <div data-controller="travel-link"
+            data-travel-link-is-planner-value="<%= @travel.user_id == current_user.id %>"
+            data-travel-link-is-shared-value="<%= @travel.shared? %>">
+          <%= link_to '旅のしおり', 
+                      new_travel_spot_path(@travel), 
+                      class: 'nav-link',
+                      data: { action: "click->travel-link#click" } %>
+        </div>
         <%= link_to 'フォトブック', travel_photos_path(@travel), class: 'nav-link' %>
       </div>
     </div>

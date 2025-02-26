@@ -10088,6 +10088,20 @@
     pollInterval: { type: Number, default: 5e3 }
   });
 
+  // app/javascript/controllers/travel_link_controller.js
+  var travel_link_controller_default = class extends Controller {
+    click(event) {
+      if (!this.isPlannerValue && !this.isSharedValue) {
+        event.preventDefault();
+        alert("\u65C5\u306E\u3057\u304A\u308A\u306F\u5E79\u4E8B\u304C\u73FE\u5728\u4F5C\u6210\u4E2D\u3067\u3059\u3002");
+      }
+    }
+  };
+  __publicField(travel_link_controller_default, "values", {
+    isPlanner: Boolean,
+    isShared: Boolean
+  });
+
   // app/javascript/controllers/index.js
   var application = Application.start();
   var DropdownController = class extends Controller {
@@ -10105,6 +10119,7 @@
   application.register("photo", photo_controller_default);
   application.register("search-autocomplete", search_autocomplete_controller_default);
   application.register("notification", notification_controller_default);
+  application.register("travel-link", travel_link_controller_default);
 
   // node_modules/bootstrap/dist/js/bootstrap.esm.js
   var bootstrap_esm_exports = {};
