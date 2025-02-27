@@ -24,6 +24,12 @@
         </div>
       <% end %>
 
+      <div class="social-login">
+        <%= button_to auth_path(provider: 'google_oauth2'), method: :post, class: "btn btn-google", data: { turbo: false } do %>
+          <i class="fab fa-google"></i> Googleでログイン
+        <% end %>
+      </div>
+
       <div class='text-center mt-4'>
         <p class="text-muted">アカウントをお持ちでない方は</p>
         <%= link_to '新規登録はこちら', new_user_path, class: 'btn btn-link' %>

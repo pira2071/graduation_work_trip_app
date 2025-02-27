@@ -3,6 +3,25 @@ class ApplicationController < ActionController::Base
   before_action :require_login
   before_action :check_session_timeout, if: :logged_in?
 
+  def check_session_timeout
+    return unless logged_in?
+    
+    if session[:last_access_time].nil?
+      # セッションタイムが存在しない場合は設定する
+      session[:last_access_time] = Time.current
+      return
+    end
+    
+    last_access_time = Time.zone.parse(session[:last_access_time].to_s)
+    if last_access_time < 30.minutes.ago
+      logout
+      redirect_to login_path, danger: "セッションの有効期限が切れました。再度ログインしてください。"
+    else
+      # 最終アクセス時間を更新
+      session[:last_access_time] = Time.current
+    end
+  end
+  
   private
 
   def not_authenticated

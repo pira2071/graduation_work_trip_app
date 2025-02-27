@@ -106,6 +106,29 @@ main {
   }
 }
 
+// Googleログイン用
+.btn-google {
+  background-color: #4285F4;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-top: 15px;
+}
+
+.btn-google:hover {
+  background-color: #357AE8;
+  color: white;
+  text-decoration: none;
+}
+
+.btn-google i {
+  margin-right: 10px;
+}
+
 // Import other styles
 @import "top";
 

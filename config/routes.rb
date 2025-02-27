@@ -9,6 +9,12 @@ Rails.application.routes.draw do
   
   # ログイン必須のルーティング
   get 'dashboard', to: 'static_pages#dashboard'
+
+  # Googleログインのルーティング
+  # 認証開始のルート - POSTメソッドで設定
+  post '/auth/:provider', to: lambda { |_env| [404, {}, ['Not Found']] }, as: :auth
+  # コールバックルート - GETメソッドで設定（OAuthのリダイレクトはGETで戻ってくる）
+  get '/users/auth/:provider/callback', to: 'user_sessions#google_oauth2'
   
   # 旅行プラン関連
   resources :travels do

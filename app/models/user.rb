@@ -36,7 +36,7 @@ class User < ApplicationRecord
     User.where(id: friend_ids).where.not(id: id)
   end
 
-  # パスワードリセット用のメソッドを追加
+  # パスワードリセット用のメソッド
   def deliver_reset_password_instructions!
     temp_token = SecureRandom.uuid
     self.reset_password_token = temp_token
@@ -46,7 +46,7 @@ class User < ApplicationRecord
     UserMailer.reset_password_email(self).deliver_now
   end
 
-  # 保留中のフレンド申請を取得
+  # 保留中のフレンド申請を取得するメソッド
   def pending_friend_requests
     received_friendships.pending
   end
@@ -61,5 +61,29 @@ class User < ApplicationRecord
   # 未読の通知を取得するメソッド
   def unread_notifications_count
     notifications.unread.count
+  end
+
+  # Googleログイン用のメソッド
+  def self.from_omniauth(auth)
+    # まずメールアドレスでユーザーを検索
+    user = find_by(email: auth.info.email)
+    
+    if user
+      # 既存ユーザーの場合はprovider/uidを更新してユーザーを返す
+      user.update(
+        provider: auth.provider,
+        uid: auth.uid
+      )
+      return user
+    else
+      # 新規ユーザー作成（ユーザーがいない場合）
+      where(provider: auth.provider, uid: auth.uid).first_or_initialize do |user|
+        user.email = auth.info.email
+        user.name = auth.info.name
+        # ランダムパスワードを設定
+        user.password = SecureRandom.hex(10)
+        user.password_confirmation = user.password
+      end
+    end
   end
 end
