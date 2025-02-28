@@ -17,6 +17,7 @@ export default class extends Controller {
       hotel: []
     };
     this.currentInfoWindow = null; // 現在開いている情報ウィンドウを追跡
+    this.deletedSpotIds = new Set(); // 削除されたスポットのID
   }
 
   connect() {
@@ -574,11 +575,20 @@ export default class extends Controller {
     `;
   }
 
+  // 保存ボタンクリック時の処理を修正
   async saveSchedules() {
+    // 「保存中...」というメッセージを表示
+    const savingMessage = document.createElement('div');
+    savingMessage.className = 'position-fixed top-0 start-50 translate-middle-x bg-info text-white p-3 rounded mt-3';
+    savingMessage.style.zIndex = '9999';
+    savingMessage.textContent = '保存中...';
+    document.body.appendChild(savingMessage);
+    
+    // スケジュール情報を収集
     const schedules = [];
     const deletedSpots = Array.from(this.deletedSpotIds || []);
     
-    // スケジュール情報の収集
+    // スケジュールに追加されたスポットの情報を収集
     this.scheduleListTargets.forEach(list => {
       const day = parseInt(list.dataset.day);
       const timeZone = list.dataset.timeZone;
@@ -597,7 +607,18 @@ export default class extends Controller {
         });
       });
     });
+    
+    // アプリケーションロジックの修正: スケジュールに追加されていないスポットも保存できるようにする
+    // 各カテゴリのスポットリストが空かどうかを確認
+    const hasAnySpots = Object.values(this.temporarySpots).some(spots => spots.length > 0);
+    
+    if (!hasAnySpots && deletedSpots.length === 0) {
+      document.body.removeChild(savingMessage);
+      alert('保存するスポットがありません');
+      return;
+    }
   
+    // ここが重要: 空のスケジュールでも正常に動作するように修正
     const saveData = {
       schedules: schedules,
       deleted_spot_ids: deletedSpots
@@ -613,27 +634,76 @@ export default class extends Controller {
         body: JSON.stringify(saveData)
       });
   
+      // 応答が JSON でない場合のエラーハンドリングを追加
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("サーバーからの応答が不正です。JSON形式ではありません。");
+      }
+  
       const data = await response.json();
       
+      // 保存中...メッセージを削除
+      document.body.removeChild(savingMessage);
+      
       if (data.success) {
-        alert(data.message);
+        // 成功メッセージをトースト通知で表示
+        this.showToast('success', data.message || 'スケジュールを保存しました');
+        
+        // 削除されたスポットIDのリストをクリア
         this.deletedSpotIds = new Set();
-        window.location.href = `/travels/${this.travelIdValue}`;
       } else {
         throw new Error(data.message || '保存に失敗しました');
       }
     } catch (error) {
       console.error('Save error:', error);
+      document.body.removeChild(savingMessage);
       alert('保存に失敗しました: ' + error.message);
     }
   }
 
-  showSuccessMessage(message = '') {
-    if (message) {
-      alert(message);  // とりあえずalertで表示
+  // トースト通知を表示するヘルパーメソッド
+  showToast(type, message) {
+    // トーストコンテナがなければ作成
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+      toastContainer.style.zIndex = '9999';
+      document.body.appendChild(toastContainer);
     }
-    // プラン詳細画面へ遷移
-    window.location.href = `/travels/${this.travelIdValue}`;
+    
+    // トーストエレメントを作成
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center ${type === 'success' ? 'bg-success' : 'bg-danger'} text-white border-0`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+    
+    toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
+    
+    toastContainer.appendChild(toastEl);
+    
+    // Bootstrapのトースト機能を初期化
+    const toast = new bootstrap.Toast(toastEl, {
+      delay: 5000
+    });
+    toast.show();
+    
+    // トーストが非表示になったら要素を削除
+    toastEl.addEventListener('hidden.bs.toast', () => {
+      toastEl.remove();
+      // コンテナが空になったら削除
+      if (toastContainer.children.length === 0) {
+        toastContainer.remove();
+      }
+    });
   }
 
   updateSpotsOrder(category) {
@@ -692,10 +762,25 @@ export default class extends Controller {
       }
   
       const data = await response.json();
-      alert(data.message);
+      this.showToast('success', data.message || '通知を送信しました');
     } catch (error) {
       console.error('Notification error:', error);
-      alert('通知の送信に失敗しました: ' + error.message);
+      this.showToast('error', '通知の送信に失敗しました: ' + error.message);
+    }
+  }
+
+  // マーカーのクリーンアップ
+  cleanupMarkers() {
+    if (this.markers && Array.isArray(this.markers)) {
+      this.markers.forEach(marker => {
+        if (marker) marker.setMap(null);
+      });
+      this.markers = [];
+    }
+    
+    if (this.temporaryMarker) {
+      this.temporaryMarker.setMap(null);
+      this.temporaryMarker = null;
     }
   }
 }

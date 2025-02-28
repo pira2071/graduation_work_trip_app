@@ -9219,6 +9219,7 @@
         hotel: []
       };
       this.currentInfoWindow = null;
+      this.deletedSpotIds = /* @__PURE__ */ new Set();
     }
     connect() {
       console.log("Controller connected");
@@ -9671,7 +9672,13 @@
       </div>
     `;
     }
+    // 保存ボタンクリック時の処理を修正
     async saveSchedules() {
+      const savingMessage = document.createElement("div");
+      savingMessage.className = "position-fixed top-0 start-50 translate-middle-x bg-info text-white p-3 rounded mt-3";
+      savingMessage.style.zIndex = "9999";
+      savingMessage.textContent = "\u4FDD\u5B58\u4E2D...";
+      document.body.appendChild(savingMessage);
       const schedules = [];
       const deletedSpots = Array.from(this.deletedSpotIds || []);
       this.scheduleListTargets.forEach((list) => {
@@ -9691,6 +9698,12 @@
           });
         });
       });
+      const hasAnySpots = Object.values(this.temporarySpots).some((spots) => spots.length > 0);
+      if (!hasAnySpots && deletedSpots.length === 0) {
+        document.body.removeChild(savingMessage);
+        alert("\u4FDD\u5B58\u3059\u308B\u30B9\u30DD\u30C3\u30C8\u304C\u3042\u308A\u307E\u305B\u3093");
+        return;
+      }
       const saveData = {
         schedules,
         deleted_spot_ids: deletedSpots
@@ -9704,24 +9717,57 @@
           },
           body: JSON.stringify(saveData)
         });
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("\u30B5\u30FC\u30D0\u30FC\u304B\u3089\u306E\u5FDC\u7B54\u304C\u4E0D\u6B63\u3067\u3059\u3002JSON\u5F62\u5F0F\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002");
+        }
         const data = await response.json();
+        document.body.removeChild(savingMessage);
         if (data.success) {
-          alert(data.message);
+          this.showToast("success", data.message || "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u3092\u4FDD\u5B58\u3057\u307E\u3057\u305F");
           this.deletedSpotIds = /* @__PURE__ */ new Set();
-          window.location.href = `/travels/${this.travelIdValue}`;
         } else {
           throw new Error(data.message || "\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
         }
       } catch (error2) {
         console.error("Save error:", error2);
+        document.body.removeChild(savingMessage);
         alert("\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
       }
     }
-    showSuccessMessage(message = "") {
-      if (message) {
-        alert(message);
+    // トースト通知を表示するヘルパーメソッド
+    showToast(type, message) {
+      let toastContainer = document.querySelector(".toast-container");
+      if (!toastContainer) {
+        toastContainer = document.createElement("div");
+        toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
+        toastContainer.style.zIndex = "9999";
+        document.body.appendChild(toastContainer);
       }
-      window.location.href = `/travels/${this.travelIdValue}`;
+      const toastEl = document.createElement("div");
+      toastEl.className = `toast align-items-center ${type === "success" ? "bg-success" : "bg-danger"} text-white border-0`;
+      toastEl.setAttribute("role", "alert");
+      toastEl.setAttribute("aria-live", "assertive");
+      toastEl.setAttribute("aria-atomic", "true");
+      toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
+      toastContainer.appendChild(toastEl);
+      const toast = new bootstrap.Toast(toastEl, {
+        delay: 5e3
+      });
+      toast.show();
+      toastEl.addEventListener("hidden.bs.toast", () => {
+        toastEl.remove();
+        if (toastContainer.children.length === 0) {
+          toastContainer.remove();
+        }
+      });
     }
     updateSpotsOrder(category) {
       const spots = this.temporarySpots[category];
@@ -9777,10 +9823,24 @@
           throw new Error(errorData.error || "\u901A\u77E5\u306E\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
         }
         const data = await response.json();
-        alert(data.message);
+        this.showToast("success", data.message || "\u901A\u77E5\u3092\u9001\u4FE1\u3057\u307E\u3057\u305F");
       } catch (error2) {
         console.error("Notification error:", error2);
-        alert("\u901A\u77E5\u306E\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
+        this.showToast("error", "\u901A\u77E5\u306E\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error2.message);
+      }
+    }
+    // マーカーのクリーンアップ
+    cleanupMarkers() {
+      if (this.markers && Array.isArray(this.markers)) {
+        this.markers.forEach((marker) => {
+          if (marker)
+            marker.setMap(null);
+        });
+        this.markers = [];
+      }
+      if (this.temporaryMarker) {
+        this.temporaryMarker.setMap(null);
+        this.temporaryMarker = null;
       }
     }
   };

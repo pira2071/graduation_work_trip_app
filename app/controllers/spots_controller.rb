@@ -110,7 +110,8 @@ class SpotsController < ApplicationController
     @travel = Travel.find(params[:travel_id])
     schedules_params = params.require(:schedules).map do |schedule|
       schedule.permit(:spot_id, :day_number, :time_zone, :order_number)
-    end
+    end rescue []  # パラメータが空の場合は空配列を返す
+    
     deleted_spot_ids = params[:deleted_spot_ids] || []
   
     begin
@@ -123,15 +124,19 @@ class SpotsController < ApplicationController
           @travel.spots.where(id: deleted_spot_ids).destroy_all
         end
   
-        # 新しいスケジュールを作成
-        schedules_params.each do |schedule_param|
-          spot = @travel.spots.find(schedule_param[:spot_id])
-          Schedule.create!(
-            spot: spot,
-            day_number: schedule_param[:day_number],
-            time_zone: schedule_param[:time_zone],
-            order_number: schedule_param[:order_number]
-          )
+        # 新しいスケジュールを作成（スケジュールパラメータがある場合のみ）
+        if schedules_params.present?
+          schedules_params.each do |schedule_param|
+            spot = @travel.spots.find_by(id: schedule_param[:spot_id])
+            if spot
+              Schedule.create!(
+                spot: spot,
+                day_number: schedule_param[:day_number],
+                time_zone: schedule_param[:time_zone],
+                order_number: schedule_param[:order_number]
+              )
+            end
+          end
         end
   
         render json: { 
