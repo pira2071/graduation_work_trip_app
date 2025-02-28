@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_27_032714) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_28_024529) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -115,6 +115,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_27_032714) do
     t.index ["user_id"], name: "index_travel_reviews_on_user_id"
   end
 
+  create_table "travel_shares", force: :cascade do |t|
+    t.bigint "travel_id", null: false
+    t.string "notification_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["travel_id", "notification_type"], name: "index_travel_shares_on_travel_id_and_notification_type", unique: true
+    t.index ["travel_id"], name: "index_travel_shares_on_travel_id"
+  end
+
   create_table "travels", force: :cascade do |t|
     t.string "title", null: false
     t.date "start_date", null: false
@@ -158,5 +167,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_27_032714) do
   add_foreign_key "travel_members", "users"
   add_foreign_key "travel_reviews", "travels"
   add_foreign_key "travel_reviews", "users"
+  add_foreign_key "travel_shares", "travels"
   add_foreign_key "travels", "users"
 end

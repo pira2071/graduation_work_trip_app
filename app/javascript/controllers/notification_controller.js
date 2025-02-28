@@ -64,7 +64,11 @@ export default class extends Controller {
     event.preventDefault()
     const notificationId = event.currentTarget.dataset.notificationId
     const url = event.currentTarget.href
-
+    
+    // URLにパラメータを追加
+    const finalUrl = new URL(url, window.location.origin);
+    finalUrl.searchParams.append('from_notification', 'true');
+  
     try {
       const response = await fetch(`/notifications/${notificationId}`, {
         method: 'DELETE',
@@ -73,17 +77,17 @@ export default class extends Controller {
           'Content-Type': 'application/json'
         }
       })
-
+  
       if (response.ok) {
         // 通知削除後に通知一覧を更新
         await this.loadNotifications()
-        // 元のURLに遷移
-        window.location.href = url
+        // パラメータを追加したURLに遷移
+        window.location.href = finalUrl.toString()
       }
     } catch (error) {
       console.error("Error deleting notification:", error)
       // エラーが発生しても遷移は実行
-      window.location.href = url
+      window.location.href = finalUrl.toString()
     }
   }
 

@@ -6,6 +6,7 @@ class Travel < ApplicationRecord
   has_many :travel_reviews, dependent: :destroy
   has_many :photos, dependent: :destroy
   has_many :notifications, as: :notifiable, dependent: :destroy
+  has_many :travel_shares, dependent: :destroy
 
   validates :title, presence: true
   validates :start_date, presence: true
@@ -23,7 +24,14 @@ class Travel < ApplicationRecord
   end
 
   def shared?
-    notifications.exists?(action: ['itinerary_proposed', 'itinerary_modified', 'itinerary_confirmed'])
+    # 通知ではなく travel_shares の存在をチェック
+    travel_shares.exists?
+  end
+
+  # 通知作成時に共有状態を設定するメソッドを追加
+  def mark_as_shared!
+    # 本来はDBカラムを更新すべきですが、一時的な対応としてキャッシュを使用
+    @is_shared = true
   end
 
   private

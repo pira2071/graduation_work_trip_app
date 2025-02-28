@@ -81,5 +81,9 @@ Rails.application.routes.draw do
   end
 
   # 通知関連
-  resources :notifications, only: [:index, :destroy]
+  resources :notifications, only: [:index, :destroy] do
+    member do
+      post :mark_as_read
+    end
+  end
 end

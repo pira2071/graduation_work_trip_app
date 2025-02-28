@@ -6,8 +6,14 @@ class SpotsController < ApplicationController
   
   def new
     @is_planner = @travel.user_id == current_user.id
+    is_from_notification = params[:from_notification].present?
 
-    unless @is_planner || @travel.shared?
+    is_shared = @travel.shared?
+    Rails.logger.debug "Travel shared status: #{is_shared}"
+    Rails.logger.debug "Travel shares: #{@travel.travel_shares.pluck(:notification_type)}"
+    Rails.logger.debug "From notification: #{is_from_notification}"
+
+    unless @is_planner || is_shared || is_from_notification
       flash[:notice] = "旅のしおりは幹事が現在作成中です。"
       redirect_to travel_path(@travel)
       return
@@ -173,9 +179,18 @@ class SpotsController < ApplicationController
           Notification.create!(
             recipient: member.user,
             notifiable: @travel,
-            action: params[:notification_type]  # actionだけを保存
+            action: params[:notification_type]
           )
         end
+        
+        # 旅行を共有状態にマーク
+        @travel.mark_as_shared!
+        
+        # 幹事はこの通知を受け取らないが、ここで共有状態を設定する
+        TravelShare.create_or_find_by!(
+          travel: @travel,
+          notification_type: params[:notification_type]
+        )
         
         render json: { 
           success: true, 

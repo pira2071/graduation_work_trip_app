@@ -24,6 +24,10 @@ class TravelsController < ApplicationController
     @travel = Travel.includes(:user, travel_members: :user).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to travels_path, danger: 'プランが見つかりませんでした'
+    Rails.logger.debug "Travel ID: #{@travel.id}"
+    Rails.logger.debug "Notifications: #{@travel.notifications.map(&:action)}"
+    Rails.logger.debug "Shared?: #{@travel.shared?}"
+    Rails.logger.debug "Is Planner?: #{@travel.user_id == current_user.id}"
   end
 
   def new

@@ -12,6 +12,14 @@ class NotificationsController < ApplicationController
     render json: { success: true }
   end
 
+  def mark_as_read
+    notification = current_user.notifications.find(params[:id])
+    notification.update(read_at: Time.current) if notification.read_at.nil?
+    
+    # 通知のURLにリダイレクト
+    redirect_to notification_url(notification)
+  end  
+
   private
 
   def format_notifications(notifications)

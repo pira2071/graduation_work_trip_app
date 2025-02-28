@@ -10055,6 +10055,8 @@
       event.preventDefault();
       const notificationId = event.currentTarget.dataset.notificationId;
       const url = event.currentTarget.href;
+      const finalUrl = new URL(url, window.location.origin);
+      finalUrl.searchParams.append("from_notification", "true");
       try {
         const response = await fetch(`/notifications/${notificationId}`, {
           method: "DELETE",
@@ -10065,11 +10067,11 @@
         });
         if (response.ok) {
           await this.loadNotifications();
-          window.location.href = url;
+          window.location.href = finalUrl.toString();
         }
       } catch (error2) {
         console.error("Error deleting notification:", error2);
-        window.location.href = url;
+        window.location.href = finalUrl.toString();
       }
     }
     startPolling() {
@@ -10090,6 +10092,16 @@
 
   // app/javascript/controllers/travel_link_controller.js
   var travel_link_controller_default = class extends Controller {
+    connect() {
+      console.log("Travel Link Controller connected");
+      console.log("Is Planner:", this.isPlannerValue);
+      console.log("Is Shared:", this.isSharedValue);
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has("from_notification")) {
+        console.log("Access from notification detected");
+        this.isSharedValue = true;
+      }
+    }
     click(event) {
       if (!this.isPlannerValue && !this.isSharedValue) {
         event.preventDefault();
