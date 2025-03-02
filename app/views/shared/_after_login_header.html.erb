@@ -1,8 +1,6 @@
 <header>
-  <nav class="navbar navbar-expand-lg navigation navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg navigation">
     <div class="container">
-      <%= link_to "TriPlanner", "/", class: "navbar-brand" %>
-      
       <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -10,20 +8,46 @@
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ms-auto main-nav align-items-center">
+          <!-- プランボタン（アイコンのみ） -->
           <li class="nav-item">
-            <%= link_to "プラン", travels_path, class: "nav-link" %>
+            <%= link_to travels_path, class: "nav-link icon-link", title: "プラン" do %>
+              <i class="bi bi-file-earmark-text"></i>
+            <% end %>
           </li>
 
+          <!-- フレンドボタン（プルダウン） -->
+          <li class="nav-item dropdown">
+            <button class="nav-link icon-link" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false"
+                    title="フレンド">
+              <i class="bi bi-person-plus-fill"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end">
+              <%= link_to friend_requests_path, class: "dropdown-item" do %>
+                <i class="bi bi-person-plus me-2"></i>追加
+              <% end %>
+              <%= link_to friendships_path, class: "dropdown-item" do %>
+                <i class="bi bi-people me-2"></i>一覧
+              <% end %>
+            </div>
+          </li>
+
+          <!-- 持物リストボタン（アイコンのみ） -->
           <li class="nav-item">
-            <%= link_to "持物リスト", packing_lists_path, class: "nav-link" %>
+            <%= link_to packing_lists_path, class: "nav-link icon-link", title: "パックリスト" do %>
+              <i class="bi bi-bag"></i>
+            <% end %>
           </li>
 
           <!-- 通知ドロップダウン -->
           <li class="nav-item dropdown" data-controller="notification">
-            <button class="nav-link dropdown-toggle position-relative" 
+            <button class="nav-link icon-link position-relative notification-btn" 
                     type="button" 
                     data-bs-toggle="dropdown" 
-                    aria-expanded="false">
+                    aria-expanded="false"
+                    title="通知">
               <i class="bi bi-bell"></i>
               <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
                     data-notification-target="count">
@@ -37,19 +61,27 @@
           
           <!-- 設定ドロップダウン -->
           <li class="nav-item dropdown" data-controller="dropdown">
-            <button class="nav-link dropdown-toggle" 
+            <button class="nav-link icon-link" 
                     type="button" 
                     data-bs-toggle="dropdown" 
-                    aria-expanded="false">
-              設定
+                    aria-expanded="false"
+                    title="設定">
+              <i class="bi bi-person-circle"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end" data-dropdown-target="menu">
-              <%= link_to "名前", "#", class: "dropdown-item" %>
-              <%= link_to "メールアドレス", "#", class: "dropdown-item" %>
-              <%= link_to "パスワード", "#", class: "dropdown-item" %>
-              <%= link_to "友だち追加", friend_requests_path, class: "dropdown-item" %>
-              <%= link_to "友だち一覧", friendships_path, class: "dropdown-item" %>
-              <%= link_to "ログアウト", logout_path, data: { turbo_method: :delete }, class: "dropdown-item" %>
+            <div class="dropdown-menu dropdown-menu-end user-menu" data-dropdown-target="menu">
+              <%= link_to "#", class: "dropdown-item" do %>
+                <i class="bi bi-person me-2"></i>名前
+              <% end %>
+              <%= link_to "#", class: "dropdown-item" do %>
+                <i class="bi bi-envelope me-2"></i>メールアドレス
+              <% end %>
+              <%= link_to "#", class: "dropdown-item" do %>
+                <i class="bi bi-key me-2"></i>パスワード
+              <% end %>
+              <div class="dropdown-divider"></div>
+              <%= link_to logout_path, data: { turbo_method: :delete }, class: "dropdown-item text-danger" do %>
+                <i class="bi bi-box-arrow-right me-2"></i>ログアウト
+              <% end %>
             </div>
           </li>
         </ul>

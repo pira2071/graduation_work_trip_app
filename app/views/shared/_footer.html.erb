@@ -1,12 +1,25 @@
-<footer id='footer' class='footer-bottom'>
-  <div class='container'>
-    <div class='row'>
-      <div class='col-sm-6 col-12'>
-        <div class='nav-item'>
-          <%= link_to "利用規約", terms_of_service_path, class: "nav-link" %>
-          <%= link_to "プライバシーポリシー", privacy_policy_path, class: "nav-link" %>
-          <%= link_to "お問い合わせ", contact_us_path, class: "nav-link" %>
+<footer id="footer" class="footer-bottom">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-links">
+        <div class="footer-link-item">
+          <%= link_to terms_of_service_path, class: "footer-link" do %>
+            <i class="bi bi-file-text me-1"></i>利用規約
+          <% end %>
         </div>
+        <div class="footer-link-item">
+          <%= link_to privacy_policy_path, class: "footer-link" do %>
+            <i class="bi bi-shield-lock me-1"></i>プライバシーポリシー
+          <% end %>
+        </div>
+        <div class="footer-link-item">
+          <%= link_to contact_us_path, class: "footer-link" do %>
+            <i class="bi bi-envelope me-1"></i>お問い合わせ
+          <% end %>
+        </div>
+      </div>
+      <div class="copyright">
+        © <%= Date.today.year %> TriPlanner All Rights Reserved.
       </div>
     </div>
   </div>

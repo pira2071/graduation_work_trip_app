@@ -1,12 +1,14 @@
-<div class="container">
-  <div class="row">
-    <div class="col-md-10 col-lg-8 mx-auto">
-      <h1 class="text-center mb-4">新規ユーザー登録</h1>
-      <%= form_with model: @user, local: true do |f| %>
-        <%# エラーメッセージ表示 %>
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <h1>新規ユーザー登録</h1>
+    </div>
+    
+    <div class="auth-card-body">
+      <%= form_with model: @user, local: true, class: "auth-form" do |f| %>
         <% if @user.errors.any? %>
           <div class="alert alert-danger">
-            <ul class="mb-0">
+            <ul>
               <% @user.errors.full_messages.each do |message| %>
                 <li><%= message %></li>
               <% end %>
@@ -30,30 +32,20 @@
           <div class="form-text">パスワードは6文字以上で入力してください</div>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-4">
           <%= f.label :password_confirmation, 'パスワード（確認）', class: 'form-label required' %>
           <%= f.password_field :password_confirmation, class: 'form-control' %>
         </div>
 
-        <div class="text-center">
-          <%= f.submit '登録', class: 'btn btn-primary btn-lg px-5' %>
+        <div class="d-grid mb-4">
+          <%= f.submit '登録', class: 'auth-btn btn-primary' %>
         </div>
       <% end %>
 
-      <div class='text-center mt-4'>
-        <p class="text-muted">アカウントをお持ちの方は</p>
-        <%= link_to 'ログインページへ', login_path, class: 'btn btn-link' %>
+      <div class="auth-links">
+        <p class="text-muted mb-1">Googleアカウント・本アプリのアカウントを</p>
+        <p class="text-muted mb-2">お持ちの方は <%= link_to 'ログインページへ', login_path, class: 'btn-link' %></p>
       </div>
     </div>
   </div>
 </div>
-
-<%# 必須マーク用のCSS %>
-<% content_for :css do %>
-  <style>
-    .required:after {
-      content: " *";
-      color: red;
-    }
-  </style>
-<% end %>

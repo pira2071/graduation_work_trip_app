@@ -1,20 +1,31 @@
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="mb-0">フレンドに追加</h2>
+<div class="friend-container">
+  <div class="container mb-2">
+            <div class="friend-breadcrumb">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">フレンド追加</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  
+  <div class="friend-card">
+    <div class="friend-card-header">
+      <h1>フレンド追加</h1>
+    </div>
+    
+    <div class="friend-card-body">
+      <%= form_with url: friendships_path, local: true, class: "friend-form" do |f| %>
+        <div class="mb-4">
+          <%= f.label :name, 'ユーザー名でフレンドを追加できます', class: 'form-label' %>
+          <%= f.text_field :name, class: 'form-control', placeholder: 'ユーザー名を入力' %>
         </div>
-        <div class="card-body">
-          <%= form_with url: friendships_path, local: true do |f| %>
-            <div class="mb-3">
-              <%= f.label :name, 'Discordユーザー名でフレンドを追加できます。', class: 'form-label' %>
-              <%= f.text_field :name, class: 'form-control', placeholder: 'ユーザー名を入力' %>
-            </div>
-            <%= f.submit 'フレンド申請を送信', class: 'btn btn-primary' %>
-          <% end %>
+        
+        <div class="friend-actions">
+          <%= f.submit 'フレンド申請を送信', class: 'friend-btn btn-primary' %>
         </div>
-      </div>
+      <% end %>
     </div>
   </div>
 </div>

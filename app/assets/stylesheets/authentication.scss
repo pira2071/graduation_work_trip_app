@@ -1,4 +1,4 @@
-// お問い合わせページ用のスタイル
+// ログイン画面・新規登録画面などの認証関連ページ用のスタイル
 
 // 新橋色の定義
 $shinbashi-color: #0089A7;
@@ -6,7 +6,7 @@ $shinbashi-light: rgba(0, 137, 167, 0.1);
 $shinbashi-hover: rgba(0, 137, 167, 0.15);
 
 // 全体のコンテナスタイル
-.contact-container {
+.auth-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,16 +16,16 @@ $shinbashi-hover: rgba(0, 137, 167, 0.15);
 }
 
 // カードのスタイル
-.contact-card {
+.auth-card {
   width: 100%;
-  max-width: 700px;
+  max-width: 600px;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background-color: #fff;
   overflow: hidden;
 }
 
-.contact-card-header {
+.auth-card-header {
   padding: 1.5rem;
   background-color: $shinbashi-light;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -39,7 +39,7 @@ $shinbashi-hover: rgba(0, 137, 167, 0.15);
   }
 }
 
-.contact-card-body {
+.auth-card-body {
   padding: 1.5rem;
   
   @media (min-width: 768px) {
@@ -48,8 +48,8 @@ $shinbashi-hover: rgba(0, 137, 167, 0.15);
 }
 
 // フォーム要素
-.contact-form {
-  .mb-3, .mb-4 {
+.auth-form {
+  .form-group, .mb-3, .mb-4 {
     margin-bottom: 1.5rem;
   }
   
@@ -75,18 +75,20 @@ $shinbashi-hover: rgba(0, 137, 167, 0.15);
     }
   }
   
-  textarea.form-control {
-    resize: vertical;
-    min-height: 120px;
+  .form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
   }
 }
 
 // ボタン
-.contact-btn {
+.auth-btn {
   border-radius: 5px;
   padding: 0.5rem 2rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  width: 100%;
   
   &.btn-primary {
     background-color: $shinbashi-color;
@@ -97,8 +99,68 @@ $shinbashi-hover: rgba(0, 137, 167, 0.15);
       background-color: darken($shinbashi-color, 5%);
       border-color: darken($shinbashi-color, 5%);
       color: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  &.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+    
+    &:hover {
+      background-color: darken(#6c757d, 5%);
+      border-color: darken(#6c757d, 5%);
+      color: #fff;
+    }
+  }
+}
+
+// Googleログインボタン
+.btn-google {
+  background-color: #4285F4;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: none;
+  width: 100%;
+  font-weight: 500;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  
+  &:hover {
+    background-color: #357AE8;
+    color: white;
+    text-decoration: none;
+  }
+  
+  i {
+    margin-right: 10px;
+  }
+}
+
+// リンク関連
+.auth-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  
+  .text-muted {
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+  
+  .btn-link {
+    color: $shinbashi-color;
+    text-decoration: none;
+    padding: 0;
+    display: inline-block;
+    
+    &:hover {
+      text-decoration: underline;
+      color: darken($shinbashi-color, 10%);
     }
   }
 }
@@ -114,8 +176,9 @@ $shinbashi-hover: rgba(0, 137, 167, 0.15);
 }
 
 // アクションエリア
-.contact-actions {
+.auth-actions {
   display: flex;
   justify-content: center;
+  gap: 1rem;
   margin-top: 1.5rem;
 }

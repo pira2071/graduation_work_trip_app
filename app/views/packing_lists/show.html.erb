@@ -1,32 +1,42 @@
-<div class="container mt-4" data-controller="packing-list-check">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">持物チェック</h1>
-    <button type="button" 
-            class="btn btn-secondary" 
-            data-action="click->packing-list-check#clearAll">
-      クリア
-    </button>
-  </div>
-
-  <div class="list-group mb-4">
-    <% @items.each do |item| %>
-      <div class="list-group-item d-flex justify-content-between align-items-center">
-        <span><%= item.name %></span>
-        <div class="form-check">
-          <%= check_box_tag "item_#{item.id}", 
-                          1, 
-                          item.checked, 
-                          class: "form-check-input",
-                          data: {
-                            action: "change->packing-list-check#toggleCheck",
-                            item_id: item.id
-                          } %>
+<div class="packing-container" data-controller="packing-list-check">
+  <div class="packing-card">
+    <div class="packing-card-header d-flex justify-content-between align-items-center">
+      <h1>チェックリスト</h1>
+      <button type="button" 
+              class="packing-btn btn-clear" 
+              data-action="click->packing-list-check#clearAll">
+        <i class="bi bi-arrow-repeat me-1"></i> クリア
+      </button>
+    </div>
+    
+    <div class="packing-card-body">
+      <% if @items.empty? %>
+        <div class="packing-empty">
+          <p>リストにアイテムがありません。</p>
         </div>
+      <% else %>
+        <div class="packing-list">
+          <% @items.each do |item| %>
+            <div class="packing-list-item">
+              <span class="item-name"><%= item.name %></span>
+              <div class="packing-checkbox">
+                <%= check_box_tag "item_#{item.id}", 
+                                1, 
+                                item.checked, 
+                                class: "form-check-input",
+                                data: {
+                                  action: "change->packing-list-check#toggleCheck",
+                                  item_id: item.id
+                                } %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      
+      <div class="packing-actions">
+        <%= link_to "戻る", packing_lists_path, class: "packing-btn btn-secondary" %>
       </div>
-    <% end %>
-  </div>
-
-  <div class="text-center">
-    <%= link_to "戻る", packing_lists_path, class: "btn btn-secondary" %>
+    </div>
   </div>
 </div>

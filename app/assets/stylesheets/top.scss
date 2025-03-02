@@ -1,25 +1,157 @@
+// Top page styles
 .top-wrapper {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb, #90caf9);
-  height: calc(100vh - 134px);
-  position: relative;
+  padding: 0;
   
-  .top-inner-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    text-align: center;
-    padding: 0 20px;  // モバイル対応のためのパディング
-
-    h1 {
+  .main-content {
+    padding: 0;
+  }
+  
+  // アプリ名・イラスト部分 - 白背景
+  .service-intro {
+    background-color: #ffffff;
+    color: #333333;
+    padding: 25px 0; // 上下の余白を縮小
+    
+    .app-title {
       font-size: 3rem;
-      color: #333;
-      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
-      margin: 0;
+      font-weight: bold;
+      margin-bottom: 5px; // 余白を減らす
+      color: #333333;
+      text-align: left;
       
-      @media screen and (max-width: 767px) {
-        font-size: 2.0rem;
+      .tilted-p {
+        display: inline-block;
+        transform: rotate(-15deg);
+        font-weight: bold;
+        color: #0089A7;
+        font-size: 110%;
+      }
+    }
+    
+    .service-tagline {
+      font-size: 1.4rem;
+      margin-bottom: 20px; // 余白を減らす
+      color: #333333;
+      
+      .en-tagline {
+        font-size: 1.4rem;
+      }
+      
+      .jp-tagline {
+        font-size: 1.2rem;
+      }
+    }
+    
+    .map-illustration {
+      margin: 25px auto; // 上下の間隔を縮める
+      text-align: center;
+      max-width: 100%;
+      
+      svg {
+        max-width: 100%;
+        height: auto;
+      }
+    }
+  }
+  
+  .features {
+    // フレンド追加セクション - 新橋色背景
+    .feature-friend {
+      background-color: #0089A7;
+      color: #ffffff;
+      
+      .feature-title, .feature-description {
+        color: #ffffff;
+      }
+      
+      .feature-icon {
+        color: #ffffff;
+      }
+    }
+    
+    // プラン作成セクション - 新橋色の補色（かなり薄く）
+    .feature-plan {
+      background-color: #FFF5E8;
+      color: #333333;
+      
+      .feature-title, .feature-description {
+        color: #333333;
+      }
+      
+      .feature-icon {
+        color: #0089A7;
+      }
+    }
+    
+    // パックリストセクション - 新橋色背景
+    .feature-packlist {
+      background-color: #0089A7;
+      color: #ffffff;
+      
+      .feature-title, .feature-description {
+        color: #ffffff;
+      }
+      
+      .feature-icon {
+        color: #ffffff;
+      }
+    }
+    
+    .feature-item {
+      padding: 40px 0;
+      border-top: 1px solid #e0e0e0;
+      
+      &:last-child {
+        border-bottom: 1px solid #e0e0e0;
+      }
+      
+      .feature-title {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+      }
+      
+      .feature-description {
+        line-height: 1.6;
+      }
+      
+      .feature-icon {
+        font-size: 3rem;
+        
+        i.bi-person-plus-fill, i.bi-file-earmark-text, i.bi-bag {
+          font-size: 3rem;
+        }
+        
+        .tilted-icon {
+          display: inline-block;
+          transform: rotate(-45deg); // 45度傾ける
+          transform-origin: center;
+        }
+      }
+    }
+  }
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .top-wrapper {
+    .service-intro {
+      .app-title {
+        font-size: 2.5rem;
+        text-align: center;
+      }
+      
+      .service-tagline {
+        text-align: center;
+      }
+    }
+    
+    .features {
+      .feature-item {
+        text-align: center;
+        
+        .feature-icon {
+          margin-top: 20px;
+        }
       }
     }
   }

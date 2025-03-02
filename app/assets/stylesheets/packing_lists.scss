@@ -1,0 +1,230 @@
+// _packing_lists.scss
+// パックリスト関連画面のスタイル
+
+// 新橋色の定義
+$shinbashi-color: #0089A7;
+$shinbashi-light: rgba(0, 137, 167, 0.1);
+$shinbashi-hover: rgba(0, 137, 167, 0.15);
+
+// コンテナスタイル
+.packing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 150px); // ヘッダー・フッターを考慮
+  padding: 2rem 0;
+}
+
+// アクションエリア
+.packing-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+// カードスタイル
+.packing-card {
+  width: 100%;
+  max-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.packing-card-header {
+  padding: 1.5rem;
+  background-color: $shinbashi-light;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $shinbashi-color;
+  }
+}
+
+.packing-card-body {
+  padding: 1.5rem;
+}
+
+// リスト表示
+.packing-list {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  
+  .packing-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $shinbashi-light;
+    }
+    
+    .item-link {
+      flex-grow: 1;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      padding: 0.5rem 0;
+    }
+    
+    .delete-btn {
+      color: #dc3545;
+      background: none;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+      }
+    }
+  }
+}
+
+// チェックボックス
+.packing-checkbox {
+  .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0;
+    cursor: pointer;
+    
+    &:checked {
+      background-color: $shinbashi-color;
+      border-color: $shinbashi-color;
+    }
+  }
+}
+
+// フォーム要素
+.packing-form {
+  .form-label {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .form-control {
+    border-radius: 5px;
+    border-color: rgba(0, 0, 0, 0.1);
+    padding: 0.6rem 0.75rem;
+    
+    &:focus {
+      border-color: $shinbashi-color;
+      box-shadow: 0 0 0 0.25rem rgba(0, 137, 167, 0.25);
+    }
+  }
+  
+  .add-item-btn {
+    color: $shinbashi-color;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $shinbashi-light;
+    }
+  }
+}
+
+// ボタン
+.packing-btn {
+  border-radius: 5px;
+  padding: 0.5rem 2rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &.btn-primary {
+    background-color: $shinbashi-color;
+    border-color: $shinbashi-color;
+    color: #fff;
+    
+    &:hover {
+      background-color: darken($shinbashi-color, 5%);
+      border-color: darken($shinbashi-color, 5%);
+      color: #fff;
+    }
+  }
+  
+  &.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+    
+    &:hover {
+      background-color: darken(#6c757d, 5%);
+      border-color: darken(#6c757d, 5%);
+      color: #fff;
+    }
+  }
+  
+  &.btn-clear {
+    background-color: transparent;
+    border: 1px solid $shinbashi-color;
+    color: $shinbashi-color;
+    
+    &:hover {
+      background-color: $shinbashi-light;
+    }
+  }
+}
+
+// パンくずリスト
+.packing-breadcrumb {
+  margin-bottom: 0.5rem;
+  padding: 0;
+  position: relative;
+  margin-left: 1rem;
+  
+  .breadcrumb {
+    margin-bottom: 0;
+    padding: 0;
+    
+    .breadcrumb-item {
+      font-size: 1.1rem;
+      
+      a {
+        color: $shinbashi-color;
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+      
+      &.active {
+        color: #6c757d;
+      }
+      
+      & + .breadcrumb-item::before {
+        content: "/";
+        color: #6c757d;
+      }
+    }
+  }
+}
+
+// エンプティステート
+.packing-empty {
+  padding: 2rem;
+  text-align: center;
+  
+  p {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+    font-size: 1.1rem;
+  }
+}

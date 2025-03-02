@@ -1,0 +1,224 @@
+// フレンド追加・一覧画面用のスタイル
+
+// 新橋色の定義
+$shinbashi-color: #0089A7;
+$shinbashi-light: rgba(0, 137, 167, 0.1);
+$shinbashi-hover: rgba(0, 137, 167, 0.15);
+
+// 全体のコンテナスタイル
+.friend-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 150px); // ヘッダー・フッターを考慮
+  padding: 2rem 0;
+}
+
+// カードのスタイル
+.friend-card {
+  width: 100%;
+  max-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.friend-card-header {
+  padding: 1.5rem;
+  background-color: $shinbashi-light;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  
+  h1, h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $shinbashi-color;
+  }
+  
+  .section-heading {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $shinbashi-color;
+  }
+}
+
+.friend-card-body {
+  padding: 1.5rem;
+}
+
+// フレンドリスト
+.friend-list {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  
+  .friend-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $shinbashi-light;
+    }
+    
+    .friend-name {
+      font-weight: 500;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+  
+  .empty-message {
+    padding: 1rem;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+  }
+}
+
+// フォーム要素
+.friend-form {
+  .mb-3, .mb-4 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control {
+    border-radius: 5px;
+    border-color: rgba(0, 0, 0, 0.1);
+    padding: 0.6rem 0.75rem;
+    
+    &:focus {
+      border-color: $shinbashi-color;
+      box-shadow: 0 0 0 0.25rem rgba(0, 137, 167, 0.25);
+    }
+  }
+}
+
+// ボタン
+.friend-btn {
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &.btn-primary {
+    background-color: $shinbashi-color;
+    border-color: $shinbashi-color;
+    color: #fff;
+    
+    &:hover {
+      background-color: darken($shinbashi-color, 5%);
+      border-color: darken($shinbashi-color, 5%);
+      color: #fff;
+    }
+  }
+  
+  &.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+    
+    &:hover {
+      background-color: darken(#28a745, 5%);
+      border-color: darken(#28a745, 5%);
+      color: #fff;
+    }
+  }
+  
+  &.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+    
+    &:hover {
+      background-color: darken(#dc3545, 5%);
+      border-color: darken(#dc3545, 5%);
+      color: #fff;
+    }
+  }
+  
+  &.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+// アクションエリア
+.friend-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+// パンくずリスト
+.friend-breadcrumb {
+  margin-bottom: 0.5rem;
+  padding: 0;
+  position: relative;
+  margin-left: 1rem;
+  
+  .breadcrumb {
+    margin-bottom: 0;
+    padding: 0;
+    
+    .breadcrumb-item {
+      font-size: 1.1rem;
+      
+      a {
+        color: $shinbashi-color;
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+      
+      &.active {
+        color: #6c757d;
+      }
+      
+      & + .breadcrumb-item::before {
+        content: "/";
+        color: #6c757d;
+      }
+    }
+  }
+}
+
+// セクションタイトル
+.section-title {
+  color: $shinbashi-color;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid $shinbashi-light;
+}
+
+// カウントバッジ
+.count-badge {
+  background-color: $shinbashi-color;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}

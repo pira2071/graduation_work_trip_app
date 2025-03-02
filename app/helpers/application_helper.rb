@@ -17,4 +17,10 @@ module ApplicationHelper
       }
     }
   end
+  
+  # ヘッダーを表示するページのみを判定するメソッド
+  def show_header?
+    # トップ画面のみヘッダーを表示する
+    controller_name == 'static_pages' && action_name == 'top'
+  end
 end

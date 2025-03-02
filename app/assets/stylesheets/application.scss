@@ -17,22 +17,67 @@ body {
 // Header styles
 header {
   .navbar {
-    padding: 1rem;
-    background-color: #f8f9fa !important;
+    padding: 1.5rem;
+    background-color: #0089A7 !important; // 新橋色
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     
     .navbar-brand {
-      font-weight: bold;
-      color: #333;
+      display: none; // TriPlannerという文字を非表示
     }
 
     .nav-link {
-      color: #333;
-      margin: 0 10px;
+      color: #ffffff !important; // 文字色を白に
+      margin: 0 15px; // アイコン間の間隔を広げる
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        opacity: 0.8;
+      }
+      
+      &.icon-link {
+        font-size: 1.6rem; // アイコンを統一サイズに
+        padding: 0.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .bi-bag {
+          transform: rotate(-45deg); // バッグアイコンを傾ける
+        }
+      }
     }
 
     .dropdown-menu {
       right: 0;
       left: auto;
+    }
+    
+    .signup-btn {
+      background-color: #ffffff;
+      color: #0089A7 !important;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    .notification-btn, .user-menu-btn {
+      color: #ffffff;
     }
   }
 }
@@ -44,14 +89,57 @@ main {
 
 // Footer styles
 .footer-bottom {
-  background-color: #f8f9fa;
-  padding: 1rem 0;
-  margin-top: auto;
+  background-color: #FEEEED; // 非常に薄い桜色
+  padding: 2rem 0;
+  color: #333333; // 背景が明るいので文字色は暗めに
 
-  .nav-link {
-    color: #333;
-    padding: 0.5rem 1rem;
-    display: inline-block;
+
+  .footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .footer-link-item {
+    margin: 0.5rem 0;
+  }
+  
+  .footer-link {
+    color: #333333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    
+    &:hover {
+      color: #0089A7; // ホバー時は新橋色に
+      text-decoration: underline;
+    }
+  }
+  
+  .copyright {
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+}
+
+// レスポンシブ対応
+@media (min-width: 768px) {
+  .footer-bottom {
+    .footer-links {
+      flex-direction: row;
+      justify-content: center;
+      
+      .footer-link-item {
+        margin: 0 1.5rem;
+      }
+    }
   }
 }
 
@@ -132,6 +220,14 @@ main {
 // Import other styles
 @import "top";
 
+@import "authentication";
+
 @import "plan_index_searches";
 
 @import "notifications";
+
+@import "packing_lists";
+
+@import "contacts";
+
+@import "friendships";
