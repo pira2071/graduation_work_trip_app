@@ -9,209 +9,201 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GOOGLE_MAPS_API_KEY'] %>&libraries=places&callback=initializeSpotsMap" async defer></script>
 <% end %>
 
-<div class="container" 
+<div class="travel-container" 
      data-controller="spots-registration" 
      data-spots-registration-travel-id-value="<%= @travel.id %>"
      data-spots-registration-total-days-value="<%= @total_days %>"
      data-spots-registration-existing-spots-value="<%= @spots_json.to_json %>"
      data-spots-registration-is-planner-value="<%= @is_planner %>">
 
-  <div class="debug-info" style="margin: 20px; padding: 10px; border: 1px solid #ccc;">
-    <h4>Debug Info</h4>
-    <p>Total spots: <%= @spots.count %></p>
-    <p>Scheduled spots: <%= @schedules.count %></p>
-    <% @schedules.each do |spot| %>
-      <p>
-        <%= spot.name %> - 
-        Day: <%= spot.schedule.day_number %>, 
-        Time: <%= spot.schedule.time_zone %>
-      </p>
-    <% end %>
-  </div>
+  <div class="container">
+    <div class="travel-breadcrumb">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Home', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'プラン一覧', travels_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'コンテンツ', travel_path(@travel) %></li>
+          <li class="breadcrumb-item active">旅のしおり</li>
+        </ol>
+      </nav>
+    </div>
   
-  <!-- 検索エリア -->
-  <div class="search-area mb-4">
-    <div class="d-flex align-items-center">
-      <div class="search-box flex-grow-1 me-3">
-        <input
-          id="pac-input"
-          class="form-control"
-          type="text"
-          placeholder="ここで検索"
-        />
-      </div>
-      <% if @is_planner %>
-        <div class="register-buttons">
-          <button class="btn btn-success me-2" data-action="spots-registration#registerSpot" data-category="sightseeing">観光登録</button>
-          <button class="btn btn-warning me-2" data-action="spots-registration#registerSpot" data-category="restaurant">食事処登録</button>
-          <button class="btn btn-info" data-action="spots-registration#registerSpot" data-category="hotel">宿泊先登録</button>
+    <!-- 検索エリア -->
+    <div class="travel-search-area">
+      <div class="d-flex align-items-center">
+        <div class="search-box flex-grow-1 me-3">
+          <input
+            id="pac-input"
+            class="form-control"
+            type="text"
+            placeholder="ここで検索"
+          />
         </div>
-      <% end %>
-    </div>
-  </div>
-
-  <!-- マップエリア -->
-  <div class="map-area mb-4">
-    <div id="map" style="height: 400px;" data-spots-registration-target="map"></div>
-  </div>
-
-  <!-- スポットリストエリア -->
-  <div class="spots-area mb-5">
-    <div class="row">
-      <div class="col-md-4">
-        <div class="spot-section" data-category="sightseeing">
-          <div class="spot-header bg-success text-white">観光スポット</div>
-          <div class="spots-list" data-spots-registration-target="sightseeingList"></div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="spot-section" data-category="restaurant">
-          <div class="spot-header bg-warning text-white">食事処</div>
-          <div class="spots-list" data-spots-registration-target="restaurantList"></div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="spot-section" data-category="hotel">
-          <div class="spot-header bg-info text-white">宿泊先</div>
-          <div class="spots-list" data-spots-registration-target="hotelList"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <hr class="my-5">
-
-  <!-- 旅程表エリア -->
-  <h2 class="text-center mb-4">旅程表</h2>
-  <div class="schedule-area mb-4">
-    <% (1..@total_days).each do |day| %>
-      <h2 class="mt-4 mb-3"><%= day %>日目</h2>
-      <% Schedule.time_zones.keys.each do |time_zone| %>
-        <div class="card mb-3">
-          <div class="card-header <%= time_zone_color(time_zone) %>">
-            <%= time_zone_label(time_zone) %>
-          </div>
-          <div class="schedule-list" 
-              data-spots-registration-target="scheduleList"
-              data-day="<%= day %>"
-              data-time-zone="<%= time_zone %>">
-            <% scheduled_spots = @schedules.select { |spot| 
-                spot.schedule&.day_number == day && 
-                spot.schedule&.time_zone == time_zone 
-              }.sort_by { |spot| spot.schedule&.order_number || 0 } %>
-            
-            <% scheduled_spots.each do |spot| %>
-              <%= render partial: 'spot', locals: { 
-                spot: spot, 
-                schedule: spot.schedule,
-                show_number: true
-              } %>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-    <% end %>
-  </div>
-
-  <!-- デバッグ表示を追加 -->
-  <div style="display: none;">
-    <p>Total spots: <%= @spots.count %></p>
-    <p>Scheduled spots: <%= @schedules.count %></p>
-    <% @schedules.each do |spot| %>
-      <p><%= spot.name %>: Day <%= spot.schedule&.day_number %>, Time: <%= spot.schedule&.time_zone %></p>
-    <% end %>
-  </div>
-
-  <!-- 保存ボタン部分 -->
-  <% if @is_planner %>
-    <div class="text-center mt-4 mb-5">
-      <button type="button" 
-              class="btn btn-primary px-4 me-2"
-              data-action="spots-registration#saveSchedules">
-        保存
-      </button>
-
-      <!-- メンバーに通知のドロップダウンボタン -->
-      <div class="btn-group">
-        <button type="button" 
-                class="btn btn-info dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false">
-          メンバーに通知
-        </button>
-        <ul class="dropdown-menu">
-          <li>
-            <button class="dropdown-item" 
-                    data-action="spots-registration#sendNotification"
-                    data-notification-type="itinerary_proposed">
-              計画案の共有・レビュー依頼
-            </button>
-          </li>
-          <li>
-            <button class="dropdown-item" 
-                    data-action="spots-registration#sendNotification"
-                    data-notification-type="itinerary_modified">
-              修正版の共有・レビュー依頼
-            </button>
-          </li>
-          <li>
-            <button class="dropdown-item" 
-                    data-action="spots-registration#sendNotification"
-                    data-notification-type="itinerary_confirmed">
-              確定版の共有
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  <% end %>
-
-  <!-- 幹事以外のメンバーにのみレビュー欄を表示 -->
-  <% unless @is_planner %>
-    <hr class="my-5">
-    <div class="review-section mb-5">
-      <h2 class="text-center mb-4">レビュー</h2>
-      <div class="card">
-        <div class="card-body">
-          <%= form_with model: [@travel, TravelReview.new], local: true, class: "review-form" do |f| %>
-            <div class="mb-3">
-              <%= f.text_area :content, 
-                  class: "form-control", 
-                  rows: 4, 
-                  placeholder: "旅程表への意見をお書きください" %>
-            </div>
-            <div class="text-center">
-              <%= f.submit "コメントする", class: "btn btn-primary px-4" %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
-  <!-- 幹事にもレビューを表示するように修正 -->
-  <% if @is_planner && @reviews.any? %>
-    <hr class="my-5">
-    <div class="reviews-section mb-5">
-      <h2 class="text-center mb-4">メンバーからのレビュー</h2>
-      <div class="reviews-container">
-        <% @reviews.each do |review| %>
-          <div class="review-card card mb-3">
-            <div class="card-body">
-              <div class="review-header d-flex justify-content-between align-items-center mb-2">
-                <span class="reviewer-name fw-bold">
-                  <%= review.user.name %>さんのレビュー
-                </span>
-                <small class="text-muted">
-                  <%= l review.created_at, format: :short %>
-                </small>
-              </div>
-              <div class="review-content">
-                <%= simple_format h(review.content) %>
-              </div>
-            </div>
+        <% if @is_planner %>
+          <div class="register-buttons">
+            <button class="btn btn-success me-2" data-action="spots-registration#registerSpot" data-category="sightseeing">観光登録</button>
+            <button class="btn btn-warning me-2" data-action="spots-registration#registerSpot" data-category="restaurant">食事処登録</button>
+            <button class="btn btn-info" data-action="spots-registration#registerSpot" data-category="hotel">宿泊先登録</button>
           </div>
         <% end %>
       </div>
     </div>
-  <% end %>
+
+    <!-- マップエリア -->
+    <div class="travel-map-area">
+      <div id="map" style="height: 400px;" data-spots-registration-target="map"></div>
+    </div>
+
+    <!-- スポットリストエリア -->
+    <div class="travel-spots-area mb-5">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="spot-section" data-category="sightseeing">
+            <div class="spot-header bg-success text-white">観光スポット</div>
+            <div class="spots-list" data-spots-registration-target="sightseeingList"></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="spot-section" data-category="restaurant">
+            <div class="spot-header bg-warning text-white">食事処</div>
+            <div class="spots-list" data-spots-registration-target="restaurantList"></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="spot-section" data-category="hotel">
+            <div class="spot-header bg-info text-white">宿泊先</div>
+            <div class="spots-list" data-spots-registration-target="hotelList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <hr class="my-5">
+
+    <!-- 旅程表エリア -->
+    <div class="travel-itinerary">
+      <h2 class="text-center mb-4">旅程表</h2>
+      <% (1..@total_days).each do |day| %>
+        <h3 class="day-heading"><%= day %>日目</h3>
+        <% Schedule.time_zones.keys.each do |time_zone| %>
+          <div class="time-card mb-3">
+            <div class="card-header <%= time_zone_color(time_zone) %>">
+              <%= time_zone_label(time_zone) %>
+            </div>
+            <div class="spot-container" 
+                data-spots-registration-target="scheduleList"
+                data-day="<%= day %>"
+                data-time-zone="<%= time_zone %>">
+              <% scheduled_spots = @schedules.select { |spot| 
+                  spot.schedule&.day_number == day && 
+                  spot.schedule&.time_zone == time_zone 
+                }.sort_by { |spot| spot.schedule&.order_number || 0 } %>
+              
+              <% scheduled_spots.each do |spot| %>
+                <%= render partial: 'spot', locals: { 
+                  spot: spot, 
+                  schedule: spot.schedule,
+                  show_number: true
+                } %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- 保存ボタン部分 -->
+    <% if @is_planner %>
+      <div class="text-center mt-4 mb-5">
+        <button type="button" 
+                class="travel-btn btn-primary px-4 me-2"
+                data-action="spots-registration#saveSchedules">
+          保存
+        </button>
+
+        <!-- メンバーに通知のドロップダウンボタン -->
+        <div class="btn-group">
+          <button type="button" 
+                  class="btn btn-info dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">
+            メンバーに通知
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button class="dropdown-item" 
+                      data-action="spots-registration#sendNotification"
+                      data-notification-type="itinerary_proposed">
+                計画案の共有・レビュー依頼
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" 
+                      data-action="spots-registration#sendNotification"
+                      data-notification-type="itinerary_modified">
+                修正版の共有・レビュー依頼
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" 
+                      data-action="spots-registration#sendNotification"
+                      data-notification-type="itinerary_confirmed">
+                確定版の共有
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- 幹事以外のメンバーにのみレビュー欄を表示 -->
+    <% unless @is_planner %>
+      <hr class="my-5">
+      <div class="travel-review mb-5">
+        <h2 class="review-title">レビュー</h2>
+        <div class="card">
+          <div class="card-body">
+            <%= form_with model: [@travel, TravelReview.new], local: true, class: "review-form" do |f| %>
+              <div class="mb-3">
+                <%= f.text_area :content, 
+                    class: "form-control", 
+                    rows: 4, 
+                    placeholder: "旅程表への意見をお書きください" %>
+              </div>
+              <div class="text-center">
+                <%= f.submit "コメントする", class: "travel-btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- 幹事にもレビューを表示するように修正 -->
+    <% if @is_planner && @reviews.any? %>
+      <hr class="my-5">
+      <div class="travel-review mb-5">
+        <h2 class="review-title">メンバーからのレビュー</h2>
+        <div class="reviews-container">
+          <% @reviews.each do |review| %>
+            <div class="review-card card mb-3">
+              <div class="card-body">
+                <div class="review-header d-flex justify-content-between align-items-center mb-2">
+                  <span class="reviewer-name fw-bold">
+                    <%= review.user.name %>さんのレビュー
+                  </span>
+                  <small class="text-muted">
+                    <%= l review.created_at, format: :short %>
+                  </small>
+                </div>
+                <div class="review-content">
+                  <%= simple_format h(review.content) %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
 </div>

@@ -1,44 +1,48 @@
-<div class="container">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><%= link_to 'Home', root_path %></li>
-      <li class="breadcrumb-item"><%= link_to 'プラン一覧', travels_path %></li>
-      <li class="breadcrumb-item active">コンテンツ</li>
-    </ol>
-  </nav>
-
-  <div class="card mb-4">
-    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
-      <span class="text-muted">No Image</span>
+<div class="travel-container">
+  <div class="container">
+    <div class="travel-breadcrumb">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Home', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'プラン一覧', travels_path %></li>
+          <li class="breadcrumb-item active">コンテンツ</li>
+        </ol>
+      </nav>
     </div>
-    
-    <div class="card-body">
-      <h5 class="card-title"><%= @travel.title %></h5>
-      <p class="card-text">
-        <%= @travel.start_date.strftime('%Y年%m月%d日') %> 〜 
-        <%= @travel.end_date.strftime('%Y年%m月%d日') %>
-      </p>
-      <p class="card-text">
-        幹事：<%= @travel.user.name %>
-      </p>
-      <p class="card-text">
-        メンバー：<%= @travel.travel_members.where(role: :guest).includes(:user).map(&:user).map(&:name).join('、') %>
-      </p>
-    </div>
-  </div>
 
-  <div class="row">
-    <div class="col-md-4">
-      <div class="nav flex-column nav-pills">
-        <div data-controller="travel-link"
-            data-travel-link-is-planner-value="<%= @travel.user_id == current_user.id %>"
-            data-travel-link-is-shared-value="<%= @travel.shared? %>">
-          <%= link_to '旅のしおり', 
-                      new_travel_spot_path(@travel), 
-                      class: 'nav-link',
-                      data: { action: "click->travel-link#click" } %>
+    <div class="travel-detail-card">
+      <div class="card-img-top">
+        <span class="text-muted">No Image</span>
+      </div>
+      
+      <div class="card-body">
+        <h5 class="card-title"><%= @travel.title %></h5>
+        <p class="card-text">
+          <%= @travel.start_date.strftime('%Y年%m月%d日') %> 〜 
+          <%= @travel.end_date.strftime('%Y年%m月%d日') %>
+        </p>
+        <p class="card-text">
+          幹事：<%= @travel.user.name %>
+        </p>
+        <p class="card-text">
+          メンバー：<%= @travel.travel_members.where(role: :guest).includes(:user).map(&:user).map(&:name).join('、') %>
+        </p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="travel-nav nav flex-column">
+          <div data-controller="travel-link"
+              data-travel-link-is-planner-value="<%= @travel.user_id == current_user.id %>"
+              data-travel-link-is-shared-value="<%= @travel.shared? %>">
+            <%= link_to '旅のしおり', 
+                        new_travel_spot_path(@travel), 
+                        class: 'nav-link',
+                        data: { action: "click->travel-link#click" } %>
+          </div>
+          <%= link_to 'フォトブック', travel_photos_path(@travel), class: 'nav-link' %>
         </div>
-        <%= link_to 'フォトブック', travel_photos_path(@travel), class: 'nav-link' %>
       </div>
     </div>
   </div>

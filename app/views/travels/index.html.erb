@@ -1,64 +1,68 @@
-<div class="container">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><%= link_to 'Home', root_path %></li>
-      <li class="breadcrumb-item active">プラン一覧</li>
-    </ol>
-  </nav>
+<div class="travel-container">
+  <div class="container">
+    <div class="travel-breadcrumb">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Home', root_path %></li>
+          <li class="breadcrumb-item active">プラン一覧</li>
+        </ol>
+      </nav>
+    </div>
 
-  <!-- 検索フォーム -->
-  <div class="search-form">
-    <%= search_form_for @q, html: { class: "position-relative" } do |f| %>
-      <div class="input-group">
-        <%= f.search_field :title_cont, 
-            class: "form-control search-autocomplete",
-            placeholder: "プランのタイトルで検索...",
-            data: { 
-              controller: "search-autocomplete",
-              search_autocomplete_url_value: travels_path(format: :json)
-            } %>
-        <%= link_to "クリア", travels_path, class: "btn btn-secondary" %>
-      </div>
-    <% end %>
-  </div>
+    <!-- 検索フォーム -->
+    <div class="travel-search">
+      <%= search_form_for @q, html: { class: "position-relative" } do |f| %>
+        <div class="input-group">
+          <%= f.search_field :title_cont, 
+              class: "form-control search-autocomplete",
+              placeholder: "プランのタイトルで検索...",
+              data: { 
+                controller: "search-autocomplete",
+                search_autocomplete_url_value: travels_path(format: :json)
+              } %>
+          <%= link_to "クリア", travels_path, class: "travel-btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
 
-  <% if @travels.any? %>
-    <div class="row">
-      <% @travels.each do |travel| %>
-        <div class="col-md-3 mb-4">
-          <div class="card h-100">
-            <%= link_to travel_path(travel), class: "text-decoration-none text-dark" do %>
-              <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+    <% if @travels.any? %>
+      <div class="travel-grid">
+        <% @travels.each do |travel| %>
+          <div class="travel-card">
+            <%= link_to travel_path(travel), class: "text-decoration-none" do %>
+              <div class="card-img-top">
                 <span class="text-muted">No Image</span>
               </div>
               <div class="card-body">
-                <h5 class="card-title mb-4"><%= travel.title %></h5>
+                <h5 class="card-title"><%= travel.title %></h5>
                 <p class="card-text">
                   <small class="text-muted">
                     幹事：<%= travel.user.name %>
                     <%= "(あなた)" if travel.user_id == current_user.id %>
                   </small>
                 </p>
-              </div>
-            <% end %>
-            <% if travel.user_id == current_user.id %>
-              <div class="position-absolute bottom-0 end-0 mb-3 me-3">
-                <%= link_to '編集', edit_travel_path(travel), 
-                    class: 'btn btn-outline-primary btn-sm me-2' %>
-                <%= link_to '削除', travel_path(travel), 
-                    data: { turbo_method: :delete, turbo_confirm: '本当に削除しますか？' },
-                    class: 'btn btn-outline-danger btn-sm' %>
+                <% if travel.user_id == current_user.id %>
+                  <div class="action-buttons mt-3">
+                    <%= link_to '編集', edit_travel_path(travel), 
+                        class: 'travel-btn btn-outline-primary btn-sm me-2' %>
+                    <%= link_to '削除', travel_path(travel), 
+                        data: { turbo_method: :delete, turbo_confirm: '本当に削除しますか？' },
+                        class: 'travel-btn btn-outline-danger btn-sm' %>
+                  </div>
+                <% end %>
               </div>
             <% end %>
           </div>
-        </div>
-      <% end %>
-    </div>
-  <% else %>
-    <p class="text-center my-5">プランの履歴はありません。</p>
-  <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center my-5">
+        <p class="text-muted">プランの履歴はありません。</p>
+      </div>
+    <% end %>
 
-  <div class="text-center mt-4">
-    <%= link_to '新規作成', new_travel_path, class: 'btn btn-primary btn-lg' %>
+    <div class="text-center mt-4 mb-5">
+      <%= link_to '新規作成', new_travel_path, class: 'travel-btn btn-primary btn-lg' %>
+    </div>
   </div>
 </div>

@@ -56,8 +56,8 @@ Rails.application.routes.draw do
   get 'terms_of_service', to: 'static_pages#terms_of_service'
 
   # お問い合わせフォーム用のルート
-  get 'contact_us', to: 'contacts#new'
-  post 'contact_us', to: 'contacts#create'
+  # get 'contact_us', to: 'contacts#new'
+  # post 'contact_us', to: 'contacts#create'
 
   # パスワードリセット用のルート
   resources :password_resets, only: [:new, :create, :edit, :update]

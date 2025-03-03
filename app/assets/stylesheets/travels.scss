@@ -1,0 +1,547 @@
+// プラン関連画面用のスタイル
+
+// 新橋色の定義
+$shinbashi-color: #0089A7;
+$shinbashi-light: rgba(0, 137, 167, 0.1);
+$shinbashi-hover: rgba(0, 137, 167, 0.15);
+$shinbashi-complement: #FFF5E8; // 新橋色の補色（非常に薄く）
+
+// 全体のコンテナスタイル
+.travel-container {
+  padding: 2rem 0;
+}
+
+// カードのスタイル
+.travel-card {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-img-top {
+    height: 200px;
+    background-color: $shinbashi-light;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $shinbashi-color;
+  }
+  
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .card-title {
+    color: $shinbashi-color;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  
+  .card-text {
+    color: #555;
+    margin-bottom: 0.5rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .text-muted {
+      color: #6c757d;
+    }
+  }
+  
+  .action-buttons {
+    margin-top: auto;
+    text-align: left;
+    padding-top: 0.5rem;
+  }
+}
+
+// ページヘッダー
+.travel-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $shinbashi-light;
+  
+  h1 {
+    color: $shinbashi-color;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// フォーム要素
+.travel-form {
+  .form-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.5rem;
+    
+    &.required:after {
+      content: " *";
+      color: #dc3545;
+    }
+  }
+  
+  .form-control {
+    border-radius: 5px;
+    border-color: rgba(0, 0, 0, 0.1);
+    padding: 0.6rem 0.75rem;
+    
+    &:focus {
+      border-color: $shinbashi-color;
+      box-shadow: 0 0 0 0.25rem rgba(0, 137, 167, 0.25);
+    }
+  }
+  
+  .form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+}
+
+// メンバー選択コンテナ
+.member-select-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 5px;
+  
+  .form-check {
+    padding: 0.5rem 1rem;
+    transition: background-color 0.15s ease-in-out;
+    
+    &:hover {
+      background-color: $shinbashi-light;
+    }
+  }
+  
+  hr {
+    margin: 0.5rem 0;
+    color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+// ボタン
+.travel-btn {
+  border-radius: 5px;
+  padding: 0.5rem 2rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: #fff;
+  
+  &.btn-primary {
+    background-color: $shinbashi-color;
+    border-color: $shinbashi-color;
+    
+    &:hover {
+      background-color: darken($shinbashi-color, 5%);
+      border-color: darken($shinbashi-color, 5%);
+    }
+  }
+  
+  &.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    
+    &:hover {
+      background-color: darken(#6c757d, 5%);
+      border-color: darken(#6c757d, 5%);
+    }
+  }
+  
+  &.btn-outline-primary {
+    color: $shinbashi-color;
+    border-color: $shinbashi-color;
+    
+    &:hover {
+      background-color: $shinbashi-color;
+      color: #fff;
+    }
+  }
+  
+  &.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+    
+    &:hover {
+      background-color: #dc3545;
+      color: #fff;
+    }
+  }
+}
+
+// 検索フォーム
+.travel-search {
+  margin-bottom: 2rem;
+  
+  .input-group {
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .form-control {
+    border-right: none;
+    
+    &:focus {
+      box-shadow: none;
+    }
+  }
+  
+  .btn {
+    border-left: none;
+    background-color: #fff;
+    color: #6c757d;
+    
+    &:hover {
+      color: #343a40;
+    }
+  }
+}
+
+// パンくずリスト
+.travel-breadcrumb {
+  margin-bottom: 1.5rem;
+  
+  .breadcrumb {
+    margin-bottom: 0;
+    padding: 0.5rem 0;
+    
+    .breadcrumb-item {
+      font-size: 0.95rem;
+      
+      a {
+        color: $shinbashi-color;
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+      
+      &.active {
+        color: #6c757d;
+      }
+    }
+  }
+}
+
+// リスト内のカードグリッド
+.travel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+// ナビゲーションタブ
+.travel-nav {
+  margin-bottom: 2rem;
+  
+  .nav-link {
+    color: #495057;
+    padding: 0.75rem 1.25rem;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $shinbashi-light;
+    }
+    
+    &.active {
+      background-color: $shinbashi-color;
+      color: #fff;
+    }
+  }
+}
+
+// 詳細ページのコンテンツカード
+.travel-detail-card {
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  .card-img-top {
+    height: 250px;
+    background-color: $shinbashi-light;
+    color: $shinbashi-color;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+// 旅程表スタイル
+.travel-itinerary {
+  margin-top: 2rem;
+  
+  .day-heading {
+    color: $shinbashi-color;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $shinbashi-light;
+  }
+  
+  .time-card {
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    overflow: hidden;
+    
+    .card-header {
+      padding: 0.75rem 1.25rem;
+      font-weight: 500;
+      background-color: $shinbashi-light;
+      color: $shinbashi-color;
+    }
+  }
+  
+  .spot-container {
+    padding: 1rem;
+    border: 2px dashed rgba(0, 137, 167, 0.2);
+    border-radius: 5px;
+    background-color: #fff;
+    min-height: 50px;
+  }
+}
+
+// 地図エリア
+.travel-map-area {
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  
+  #map {
+    height: 400px;
+    width: 100%;
+  }
+}
+
+// 検索エリア
+.travel-search-area {
+  .register-buttons {
+    .btn {
+      &.btn-success {
+        background-color: #198754; // 元の緑色
+        border-color: #198754;
+        
+        &:hover {
+          background-color: darken(#198754, 5%);
+          border-color: darken(#198754, 5%);
+        }
+      }
+      
+      &.btn-warning {
+        background-color: #ffc107; // 元の黄色
+        border-color: #ffc107;
+        color: #212529;
+        
+        &:hover {
+          background-color: darken(#ffc107, 5%);
+          border-color: darken(#ffc107, 5%);
+        }
+      }
+      
+      &.btn-info {
+        background-color: #0dcaf0; // 元の青色
+        border-color: #0dcaf0;
+        color: #212529;
+        
+        &:hover {
+          background-color: darken(#0dcaf0, 5%);
+          border-color: darken(#0dcaf0, 5%);
+        }
+      }
+    }
+  }
+}
+
+// スポットリストエリア
+.travel-spots-area {
+  .spot-section {
+    .spot-header {
+      &.bg-success {
+        background-color: #198754 !important; // 元の緑色
+      }
+      
+      &.bg-warning {
+        background-color: #ffc107 !important; // 元の黄色
+        color: #212529 !important;
+      }
+      
+      &.bg-info {
+        background-color: #0dcaf0 !important; // 元の青色
+        color: #212529 !important;
+      }
+    }
+  }
+}
+
+// スポットアイテム（通し番号のバッジも含む）
+.spot-item {
+  .badge {
+    &.bg-success {
+      background-color: #198754 !important; // 元の緑色
+    }
+    
+    &.bg-warning {
+      background-color: #ffc107 !important; // 元の黄色
+      color: #212529 !important;
+    }
+    
+    &.bg-info {
+      background-color: #0dcaf0 !important; // 元の青色
+      color: #212529 !important;
+    }
+  }
+}
+
+// レビューセクション
+.travel-review {
+  margin-top: 2rem;
+  
+  .review-title {
+    color: $shinbashi-color;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .review-form {
+    .form-control {
+      border-radius: 5px;
+      resize: vertical;
+    }
+  }
+  
+  .review-card {
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .reviewer-name {
+      color: $shinbashi-color;
+    }
+  }
+}
+
+// フォトブックスタイル
+.travel-photos {
+  margin-top: 2rem;
+  
+  .day-card {
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    
+    .card-header {
+      padding: 1rem 1.5rem;
+      background-color: $shinbashi-light;
+      color: $shinbashi-color;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .btn-primary {
+        background-color: $shinbashi-color;
+        border-color: $shinbashi-color;
+        
+        &:hover {
+          background-color: darken($shinbashi-color, 5%);
+          border-color: darken($shinbashi-color, 5%);
+        }
+      }
+    }
+    
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+    
+    .photo-container {
+      position: relative;
+      
+      img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 5px;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          transform: scale(1.02);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+      }
+      
+      .delete-btn {
+        position: absolute;
+        bottom: -30px;
+        left: 0;
+        background-color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+        i {
+          color: #dc3545;
+        }
+        
+        &:hover {
+          background-color: #f8f9fa;
+        }
+      }
+    }
+  }
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .travel-container {
+    padding: 1.5rem 0;
+  }
+  
+  .travel-card {
+    .card-img-top {
+      height: 180px;
+    }
+  }
+  
+  .travel-search-area {
+    .d-flex {
+      flex-direction: column;
+      
+      .register-buttons {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+      }
+    }
+  }
+}
