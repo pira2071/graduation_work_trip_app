@@ -21,6 +21,22 @@ module TravelApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # セキュリティ関連のパスを自動読み込み
+    config.autoload_paths += %W(#{config.root}/app/lib)
+
+    # Rack::Attackミドルウェアの追加
+    config.middleware.use Rack::Attack
+
+    # セキュリティ関連のヘッダー強化
+    config.action_dispatch.default_headers = {
+      'X-Frame-Options' => 'SAMEORIGIN',
+      'X-XSS-Protection' => '1; mode=block',
+      'X-Content-Type-Options' => 'nosniff',
+      'X-Download-Options' => 'noopen',
+      'X-Permitted-Cross-Domain-Policies' => 'none',
+      'Referrer-Policy' => 'strict-origin-when-cross-origin'
+    }
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

@@ -80,6 +80,11 @@ gem 'meta-tags'
 
 gem 'ransack'
 
+# セキュリテイ対策用
+gem 'rack-attack'
+gem 'sanitize'
+gem 'recaptcha'
+
 # Googleログイン用
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-google-oauth2', '~> 1.1'
