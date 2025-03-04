@@ -48,7 +48,7 @@ gem 'jsbundling-rails'
 gem 'bootstrap'
 gem 'sassc-rails'
 
-gem 'sorcery', '0.16.5'
+gem 'sorcery', '0.17.0'
 
 group :development, :test do
 
