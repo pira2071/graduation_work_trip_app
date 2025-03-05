@@ -8,9 +8,9 @@ class UserSessionsController < ApplicationController
     @user = login(params[:email], params[:password])
     if @user
       session[:last_access_time] = Time.current
-      redirect_to root_path, success: 'ログインしました'
+      redirect_to root_path, success: t('notices.session.created')
     else
-      flash.now[:danger] = 'ログインに失敗しました'
+      flash.now[:danger] = t('activerecord.errors.models.user.invalid_login')
       render :new, status: :unprocessable_entity
     end
   end
@@ -18,14 +18,14 @@ class UserSessionsController < ApplicationController
   def destroy
     session[:last_access_time] = nil
     logout
-    redirect_to root_path, status: :see_other, success: 'ログアウトしました'
+    redirect_to root_path, status: :see_other, success: t('notices.session.destroyed')
   end
 
   def google_oauth2
     @auth = request.env['omniauth.auth']
     
     if @auth.nil?
-      redirect_to login_path, danger: "認証情報が取得できませんでした"
+      redirect_to login_path, danger: t('activerecord.errors.models.user.google_auth_failed')
       return
     end
     
@@ -36,12 +36,12 @@ class UserSessionsController < ApplicationController
       auto_login(@user)
       # セッションタイムアウト用の値を設定
       session[:last_access_time] = Time.current
-      redirect_to root_path, success: "Googleアカウントでログインしました"
+      redirect_to root_path, success: t('notices.session.google_login')
     else
-      redirect_to login_path, danger: "ログインに失敗しました: #{@user.errors.full_messages.join(', ')}"
+      redirect_to login_path, danger: t('activerecord.errors.models.user.google_login_failed', errors: @user.errors.full_messages.join(', '))
     end
   rescue => e
     Rails.logger.error "Google認証エラー: #{e.message}"
-    redirect_to login_path, danger: "認証処理中にエラーが発生しました"
+    redirect_to login_path, danger: t('activerecord.errors.models.user.google_auth_error')
   end
 end

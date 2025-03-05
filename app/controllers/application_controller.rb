@@ -15,26 +15,32 @@ class ApplicationController < ActionController::Base
     last_access_time = Time.zone.parse(session[:last_access_time].to_s)
     if last_access_time < 30.minutes.ago
       logout
-      redirect_to login_path, danger: "セッションの有効期限が切れました。再度ログインしてください。"
+      redirect_to login_path, danger: t('notices.session.timeout')
     else
       # 最終アクセス時間を更新
       session[:last_access_time] = Time.current
+    end
+  end
+
+  def convert_flash_type(type)
+    case type.to_sym
+    when :notice, :success
+      'success'
+    when :alert, :danger
+      'danger'
+    when :warning
+      'warning'
+    when :info
+      'info'
+    else
+      'info'  # デフォルトはinfo
     end
   end
   
   private
 
   def not_authenticated
-    redirect_to login_path
-  end
-
-  def check_session_timeout
-    if session_expired?
-      logout
-      redirect_to login_path, notice: 'セッションの有効期限が切れました。再度ログインしてください。'
-    else
-      session[:last_access_time] = Time.current
-    end
+    redirect_to login_path, danger: t('notices.session.authentication_required')
   end
 
   def session_expired?

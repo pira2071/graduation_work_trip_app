@@ -11,9 +11,9 @@ class UsersController < ApplicationController
     if @user.save
       auto_login(@user) # ユーザー登録と同時にログイン
       session[:last_access_time] = Time.current # 初回セッション時間を設定
-      redirect_to root_path, success: 'ユーザー登録が完了しました'
+      redirect_to root_path, success: t('notices.user.created')
     else
-      flash.now[:danger] = 'ユーザー登録に失敗しました'
+      flash.now[:danger] = t('activerecord.errors.models.user.registration_failed')
       render :new, status: :unprocessable_entity
     end
   end
@@ -23,4 +23,4 @@ class UsersController < ApplicationController
   def user_params
     params.require(:user).permit(:name, :email, :password, :password_confirmation)
   end
- end
+end

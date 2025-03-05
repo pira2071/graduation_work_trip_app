@@ -23,11 +23,7 @@ class TravelsController < ApplicationController
   def show
     @travel = Travel.includes(:user, travel_members: :user).find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    redirect_to travels_path, danger: 'プランが見つかりませんでした'
-    Rails.logger.debug "Travel ID: #{@travel.id}"
-    Rails.logger.debug "Notifications: #{@travel.notifications.map(&:action)}"
-    Rails.logger.debug "Shared?: #{@travel.shared?}"
-    Rails.logger.debug "Is Planner?: #{@travel.user_id == current_user.id}"
+    redirect_to travels_path, danger: t('notices.travel.not_found')
   end
 
   def new
@@ -54,10 +50,10 @@ class TravelsController < ApplicationController
         end
       end
   
-      redirect_to travels_path, success: 'プランを作成しました'
+      redirect_to travels_path, success: t('notices.travel.created')
     else
       @friends = current_user.friends
-      flash.now[:danger] = 'プランの作成に失敗しました'
+      flash.now[:danger] = t('activerecord.errors.models.travel.creation_failed')
       render :new, status: :unprocessable_entity
     end
   end
@@ -75,10 +71,10 @@ class TravelsController < ApplicationController
         end
       end
   
-      redirect_to @travel, success: 'プランを更新しました'
+      redirect_to @travel, success: t('notices.travel.updated')
     else
       @friends = current_user.friends
-      flash.now[:danger] = 'プランの更新に失敗しました'
+      flash.now[:danger] = t('activerecord.errors.models.travel.update_failed')
       render :edit, status: :unprocessable_entity
     end
   end
@@ -86,9 +82,9 @@ class TravelsController < ApplicationController
   def destroy
     @travel = current_user.organized_travels.find(params[:id])
     @travel.destroy!
-    redirect_to travels_path, status: :see_other, success: 'プランを削除しました'
+    redirect_to travels_path, status: :see_other, success: t('notices.travel.destroyed')
   rescue ActiveRecord::RecordNotFound
-    redirect_to travels_path, danger: 'プランが見つかりませんでした'
+    redirect_to travels_path, danger: t('notices.travel.not_found')
   end
 
   private
@@ -97,7 +93,7 @@ class TravelsController < ApplicationController
     @travel = Travel.includes(:user, travel_members: :user)
                    .find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    redirect_to travels_path, danger: 'プランが見つかりませんでした'
+    redirect_to travels_path, danger: t('notices.travel.not_found')
   end
 
   def travel_params

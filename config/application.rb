@@ -21,6 +21,15 @@ module TravelApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # 日本語をデフォルトロケールに設定
+    config.i18n.default_locale = :ja
+
+    # ロケールファイルのロードパスを設定
+    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.{rb,yml}').to_s]
+
+    # タイムゾーンを東京に設定
+    config.time_zone = 'Tokyo'
+
     # セキュリティ関連のパスを自動読み込み
     config.autoload_paths += %W(#{config.root}/app/lib)
 

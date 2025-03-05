@@ -1,0 +1,187 @@
+ja:
+  activerecord:
+    attributes:
+      user:
+        name: "お名前"
+        email: "メールアドレス"
+        password: "パスワード"
+        password_confirmation: "パスワード（確認）"
+      travel:
+        title: "タイトル"
+        start_date: "開始日"
+        end_date: "終了日"
+      packing_list:
+        name: "リスト名"
+      packing_item:
+        name: "アイテム名"
+        checked: "チェック状態"
+      travel_review:
+        content: "内容"
+      contact:
+        name: "お名前"
+        email: "メールアドレス"
+        subject: "件名"
+        message: "お問い合わせ内容"
+      spot:
+        name: "名称"
+        category: "カテゴリ"
+        lat: "緯度"
+        lng: "経度"
+      photo:
+        image: "画像"
+        day_number: "日付"
+    errors:
+      models:
+        user:
+          invalid_login: "ログインに失敗しました"
+          registration_failed: "ユーザー登録に失敗しました"
+          password_change_failed: "パスワードの変更に失敗しました"
+          google_auth_failed: "認証情報が取得できませんでした"
+          google_login_failed: "ログインに失敗しました: %{errors}"
+          google_auth_error: "認証処理中にエラーが発生しました"
+        travel:
+          creation_failed: "プランの作成に失敗しました"
+          update_failed: "プランの更新に失敗しました"
+        spot:
+          registration_failed: "登録に失敗しました"
+      messages:
+        record_invalid: "バリデーションに失敗しました: %{errors}"
+        restrict_dependent_destroy:
+          has_one: "%{record}が存在しているので削除できません"
+          has_many: "%{record}が存在しているので削除できません"
+        blank: "を入力してください"
+        too_short: "は%{count}文字以上で入力してください"
+        confirmation: "が一致しません"
+        taken: "はすでに使用されています"
+        invalid: "は不正な値です"
+        inclusion: "は一覧にありません"
+        exclusion: "は予約されています"
+        required: "を入力してください"
+  
+  errors:
+    format: "%{attribute}%{message}"
+    messages:
+      blank: "を入力してください"
+      too_short: "は%{count}文字以上で入力してください"
+      confirmation: "が一致しません"
+      invalid: "は不正な値です"
+      inclusion: "は一覧にありません"
+      exclusion: "は予約されています"
+      required: "を入力してください"
+      not_a_number: "は数値で入力してください"
+      not_an_integer: "は整数で入力してください"
+      greater_than: "は%{count}より大きい値にしてください"
+      greater_than_or_equal_to: "は%{count}以上の値にしてください"
+      equal_to: "は%{count}にしてください"
+      less_than: "は%{count}より小さい値にしてください"
+      less_than_or_equal_to: "は%{count}以下の値にしてください"
+      other_than: "は%{count}以外の値にしてください"
+      odd: "は奇数にしてください"
+      even: "は偶数にしてください"
+      taken: "はすでに存在します"
+
+  date:
+    formats:
+      default: "%Y/%m/%d"
+      short: "%m/%d"
+      long: "%Y年%m月%d日(%a)"
+    day_names: [日曜日, 月曜日, 火曜日, 水曜日, 木曜日, 金曜日, 土曜日]
+    abbr_day_names: [日, 月, 火, 水, 木, 金, 土]
+    month_names: [~, 1月, 2月, 3月, 4月, 5月, 6月, 7月, 8月, 9月, 10月, 11月, 12月]
+    abbr_month_names: [~, 1月, 2月, 3月, 4月, 5月, 6月, 7月, 8月, 9月, 10月, 11月, 12月]
+    order:
+      - :year
+      - :month
+      - :day
+
+  time:
+    formats:
+      default: "%Y/%m/%d %H:%M:%S"
+      short: "%y/%m/%d %H:%M"
+      long: "%Y年%m月%d日(%a) %H時%M分%S秒 %Z"
+    am: "午前"
+    pm: "午後"
+
+  # 機能固有の翻訳
+  spots:
+    categories:
+      sightseeing: "観光スポット"
+      restaurant: "食事処"
+      hotel: "宿泊先"
+    time_zones:
+      morning: "午前"
+      noon: "昼"
+      night: "夜"
+
+  travel_shares:
+    notification_types:
+      itinerary_proposed: "計画案の共有・レビュー依頼"
+      itinerary_modified: "修正版の共有・レビュー依頼"
+      itinerary_confirmed: "確定版の共有"
+
+  notices:
+    # ユーザー関連
+    user:
+      created: "ユーザー登録が完了しました"
+      updated: "ユーザー情報を更新しました"
+    
+    # ログイン関連
+    session:
+      created: "ログインしました"
+      destroyed: "ログアウトしました"
+      timeout: "セッションの有効期限が切れました。再度ログインしてください。"
+      authentication_required: "ログインが必要です"
+      google_login: "Googleアカウントでログインしました"
+    
+    # パスワードリセット関連
+    password_reset:
+      sent: "パスワードリセットの手順を記載したメールを送信しました"
+      updated: "パスワードを変更しました"
+    
+    # 旅行プラン関連
+    travel:
+      created: "プランを作成しました"
+      updated: "プランを更新しました"
+      destroyed: "プランを削除しました"
+      not_found: "プランが見つかりませんでした"
+      not_authorized: "アクセス権限がありません"
+      shared: "共有状態を設定しました"
+    
+    # スポット関連
+    spot:
+      created: "スポットを登録しました"
+      updated: "スポットを更新しました"
+      destroyed: "スポットを削除しました"
+      schedules_saved: "スケジュールを保存しました"
+      notification_sent: "通知を送信しました"
+    
+    # レビュー関連
+    review:
+      created: "レビューを投稿しました"
+      error: "レビューの投稿に失敗しました"
+    
+    # フレンド関連
+    friendship:
+      requested: "フレンド申請を送信しました"
+      accepted: "フレンド申請を承認しました"
+      rejected: "フレンド申請を拒否しました"
+      exists: "すでに友達申請が存在します"
+      already_friends: "すでに友達です"
+      self_request: "自分自身に友達申請はできません"
+      error: "実行できませんでした。ユーザー名が正しいか、もう一度確認してください。"
+    
+    # パックリスト関連
+    packing_list:
+      created: "持物リストを作成しました"
+      updated: "持物リストを更新しました"
+      destroyed: "持物リストを削除しました"
+    
+    # 連絡関連
+    contact:
+      sent: "お問い合わせを受け付けました"
+      error: "メール送信に失敗しました"
+    
+    # 写真関連
+    photo:
+      created: "写真をアップロードしました"
+      destroyed: "写真を削除しました"

@@ -14,7 +14,7 @@ class SpotsController < ApplicationController
     Rails.logger.debug "From notification: #{is_from_notification}"
 
     unless @is_planner || is_shared || is_from_notification
-      flash[:notice] = "旅のしおりは幹事が現在作成中です。"
+      flash[:warning] = "旅のしおりは幹事が現在作成中です。"
       redirect_to travel_path(@travel)
       return
     end
@@ -76,14 +76,14 @@ class SpotsController < ApplicationController
         render json: { 
           success: true, 
           spot: @spot.as_json.merge(travel_id: @travel.id),
-          message: 'スポットを登録しました'
+          message: t('notices.spot.created')
         }
       else
         raise ActiveRecord::Rollback
         render json: { 
           success: false, 
           errors: @spot.errors.full_messages,
-          message: '登録に失敗しました'
+          message: t('activerecord.errors.models.spot.registration_failed')
         }, status: :unprocessable_entity
       end
     end
@@ -96,14 +96,6 @@ class SpotsController < ApplicationController
     else
       render json: { success: false }, status: :unprocessable_entity
     end
-  end
-
-  def cleanup
-    @travel = Travel.find(params[:travel_id])
-    @travel.spots.where(day_number: nil, time_zone: nil).destroy_all
-    head :ok
-  rescue => e
-    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   def save_schedules
@@ -141,7 +133,7 @@ class SpotsController < ApplicationController
   
         render json: { 
           success: true,
-          message: 'スケジュールを保存しました'
+          message: t('notices.spot.schedules_saved')
         }
       end
     rescue => e
@@ -199,7 +191,7 @@ class SpotsController < ApplicationController
         
         render json: { 
           success: true, 
-          message: '通知を送信しました'
+          message: t('notices.spot.notification_sent')
         }
       end
     rescue => e
@@ -227,7 +219,7 @@ class SpotsController < ApplicationController
 
   def check_member
     unless @travel.travel_members.exists?(user_id: current_user.id)
-      redirect_to travels_path, alert: 'アクセス権限がありません'
+      redirect_to travels_path, alert: t('notices.travel.not_authorized')
     end
   end
 end
