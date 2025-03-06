@@ -9722,37 +9722,41 @@
     }
     // トースト通知を表示するヘルパーメソッド
     showToast(type, message) {
-      let toastContainer = document.querySelector(".toast-container");
-      if (!toastContainer) {
-        toastContainer = document.createElement("div");
-        toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
-        toastContainer.style.zIndex = "9999";
-        document.body.appendChild(toastContainer);
-      }
-      const toastEl = document.createElement("div");
-      toastEl.className = `toast align-items-center ${type === "success" ? "bg-success" : "bg-danger"} text-white border-0`;
-      toastEl.setAttribute("role", "alert");
-      toastEl.setAttribute("aria-live", "assertive");
-      toastEl.setAttribute("aria-atomic", "true");
-      toastEl.innerHTML = `
-      <div class="d-flex">
-        <div class="toast-body">
+      const flashContainer = document.createElement("div");
+      flashContainer.innerHTML = `
+      <div class="container mt-3">
+        <div class="alert alert-${type === "success" ? "success" : "danger"} alert-dismissible fade show" role="alert">
           ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     `;
-      toastContainer.appendChild(toastEl);
-      const toast = new bootstrap.Toast(toastEl, {
-        delay: 5e3
-      });
-      toast.show();
-      toastEl.addEventListener("hidden.bs.toast", () => {
-        toastEl.remove();
-        if (toastContainer.children.length === 0) {
-          toastContainer.remove();
+      const existingFlashContainer = document.querySelector(".container.mt-3 .alert");
+      if (existingFlashContainer) {
+        existingFlashContainer.parentNode.replaceChild(
+          flashContainer.querySelector(".alert"),
+          existingFlashContainer
+        );
+      } else {
+        const mainContent = document.querySelector("main");
+        if (mainContent) {
+          const containerDiv = document.querySelector("main > .container:first-child") || document.createElement("div");
+          if (!containerDiv.classList.contains("container")) {
+            containerDiv.className = "container mt-3";
+            mainContent.insertBefore(containerDiv, mainContent.firstChild);
+          }
+          const alertDiv = flashContainer.querySelector(".alert");
+          containerDiv.appendChild(alertDiv);
+        } else {
+          document.body.insertBefore(flashContainer.firstElementChild, document.body.firstChild);
         }
-      });
+      }
+      setTimeout(() => {
+        const alertToRemove = document.querySelector(".alert");
+        if (alertToRemove) {
+          alertToRemove.remove();
+        }
+      }, 5e3);
     }
     updateSpotsOrder(category) {
       const spots = this.temporarySpots[category];
