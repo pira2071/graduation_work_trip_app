@@ -9,9 +9,6 @@ class SpotsController < ApplicationController
     is_from_notification = params[:from_notification].present?
 
     is_shared = @travel.shared?
-    Rails.logger.debug "Travel shared status: #{is_shared}"
-    Rails.logger.debug "Travel shares: #{@travel.travel_shares.pluck(:notification_type)}"
-    Rails.logger.debug "From notification: #{is_from_notification}"
 
     unless @is_planner || is_shared || is_from_notification
       flash[:warning] = "旅のしおりは幹事が現在作成中です。"
@@ -50,12 +47,6 @@ class SpotsController < ApplicationController
 
     # レビューの取得
     @reviews = @travel.travel_reviews.includes(:user).order(created_at: :desc)
-  
-    # デバッグ出力
-    Rails.logger.debug "Prepared spots JSON: #{@spots_json}"
-    Rails.logger.debug "Total spots: #{@spots.count}"
-    Rails.logger.debug "Scheduled spots: #{@schedules.count}"
-    Rails.logger.debug "spots_json.to_json output: #{@spots_json.to_json}"
   end
 
   def register

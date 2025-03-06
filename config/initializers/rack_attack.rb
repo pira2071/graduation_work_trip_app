@@ -4,7 +4,7 @@ class Rack::Attack
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
   
   # 同一IPからのリクエスト回数制限（全般）
-  throttle('req/ip', limit: 20, period: 1.minute) do |req|
+  throttle('req/ip', limit: 30, period: 1.minute) do |req|
     req.ip
   end
   

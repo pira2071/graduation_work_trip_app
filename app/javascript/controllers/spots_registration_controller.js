@@ -16,17 +16,11 @@ export default class extends Controller {
       restaurant: [],
       hotel: []
     };
-    this.currentInfoWindow = null; // 現在開いている情報ウィンドウを追跡
-    this.deletedSpotIds = new Set(); // 削除されたスポットのID
+    this.currentInfoWindow = null;
+    this.deletedSpotIds = new Set();
   }
 
   connect() {
-    console.log('Controller connected');
-    // データ属性の生の値を出力
-    console.log('Raw data attribute:', this.element.dataset.spotsRegistrationExistingSpotsValue);
-    // 型も確認
-    console.log('Type of data:', typeof this.element.dataset.spotsRegistrationExistingSpotsValue);
-    
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         this.initializeController();
@@ -37,19 +31,13 @@ export default class extends Controller {
   }
   
   initializeController() {
-    console.log('initializeController started');
-    console.log('existingSpotsValue:', this.existingSpotsValue);  // 追加
-    
     window.addEventListener('maps-loaded', () => {
-      console.log('maps-loaded event fired');  // 追加
       this.initializeMap();
     }, { once: true });
   
     setTimeout(() => {
-      console.log('Timeout callback started');  // 追加
       this.initializeDragAndDrop();
       this.updateAllSpotNumbers();
-      console.log('Initial setup completed');
     }, 100);
   }
 
@@ -62,10 +50,7 @@ export default class extends Controller {
   }
 
   initializeMap() {
-    console.log('initializeMap started');
-
     if (!window.google || !window.google.maps) {
-      console.error('Google Maps API not loaded');
       return;
     }
   
@@ -84,13 +69,10 @@ export default class extends Controller {
   
     try {
       this.map = new google.maps.Map(this.mapTarget, mapOptions);
-      console.log('Map instance created:', this.map);
       
       // Google Maps APIのロード完了を待ってから実行
       google.maps.event.addListenerOnce(this.map, 'idle', () => {
-        console.log('Map idle event fired');
         this.setupSearchBox();
-        console.log('About to load existing spots:', this.existingSpotsValue);
         if (this.existingSpotsValue && this.existingSpotsValue.length > 0) {
           this.loadExistingSpots();
         }
@@ -557,19 +539,17 @@ export default class extends Controller {
 
   generateSpotItemHtml(spot, index, category) {
     return `
-      <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
-        <div class="card p-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-              <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
-              <span class="spot-name">${spot.name}</span>
-            </div>
-            <button type="button" 
-                    class="btn btn-outline-danger btn-sm"
-                    data-action="spots-registration#deleteFromList">
-              <i class="bi bi-trash"></i>
-            </button>
+      <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
+            <span class="spot-name">${spot.name}</span>
           </div>
+          <button type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  data-action="spots-registration#deleteFromList">
+            <i class="bi bi-trash"></i>
+          </button>
         </div>
       </div>
     `;

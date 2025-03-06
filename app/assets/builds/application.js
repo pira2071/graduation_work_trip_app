@@ -9222,9 +9222,6 @@
       this.deletedSpotIds = /* @__PURE__ */ new Set();
     }
     connect() {
-      console.log("Controller connected");
-      console.log("Raw data attribute:", this.element.dataset.spotsRegistrationExistingSpotsValue);
-      console.log("Type of data:", typeof this.element.dataset.spotsRegistrationExistingSpotsValue);
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
           this.initializeController();
@@ -9234,17 +9231,12 @@
       }
     }
     initializeController() {
-      console.log("initializeController started");
-      console.log("existingSpotsValue:", this.existingSpotsValue);
       window.addEventListener("maps-loaded", () => {
-        console.log("maps-loaded event fired");
         this.initializeMap();
       }, { once: true });
       setTimeout(() => {
-        console.log("Timeout callback started");
         this.initializeDragAndDrop();
         this.updateAllSpotNumbers();
-        console.log("Initial setup completed");
       }, 100);
     }
     disconnect() {
@@ -9255,9 +9247,7 @@
       this.cleanupMarkers();
     }
     initializeMap() {
-      console.log("initializeMap started");
       if (!window.google || !window.google.maps) {
-        console.error("Google Maps API not loaded");
         return;
       }
       const mapOptions = {
@@ -9274,11 +9264,8 @@
       };
       try {
         this.map = new google.maps.Map(this.mapTarget, mapOptions);
-        console.log("Map instance created:", this.map);
         google.maps.event.addListenerOnce(this.map, "idle", () => {
-          console.log("Map idle event fired");
           this.setupSearchBox();
-          console.log("About to load existing spots:", this.existingSpotsValue);
           if (this.existingSpotsValue && this.existingSpotsValue.length > 0) {
             this.loadExistingSpots();
           }
@@ -9655,19 +9642,17 @@
     }
     generateSpotItemHtml(spot, index2, category) {
       return `
-      <div class="spot-item" data-spot-id="${spot.id}" data-category="${category}">
-        <div class="card p-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-              <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
-              <span class="spot-name">${spot.name}</span>
-            </div>
-            <button type="button" 
-                    class="btn btn-outline-danger btn-sm"
-                    data-action="spots-registration#deleteFromList">
-              <i class="bi bi-trash"></i>
-            </button>
+      <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <span class="badge bg-${this.getColorClass(category)} me-2" data-spot-number></span>
+            <span class="spot-name">${spot.name}</span>
           </div>
+          <button type="button" 
+                  class="btn btn-outline-danger btn-sm"
+                  data-action="spots-registration#deleteFromList">
+            <i class="bi bi-trash"></i>
+          </button>
         </div>
       </div>
     `;
