@@ -31,7 +31,13 @@
           <div class="travel-card">
             <%= link_to travel_path(travel), class: "text-decoration-none" do %>
               <div class="card-img-top">
-                <span class="text-muted">No Image</span>
+                <% if travel.thumbnail.present? %>
+                  <%= image_tag travel.thumbnail.card.url, class: "card-image", alt: "表紙画像" %>
+                <% else %>
+                  <span class="text-muted d-flex justify-content-center align-items-center h-100">
+                    No image
+                  </span>
+                <% end %>
               </div>
               <div class="card-body">
                 <h5 class="card-title"><%= travel.title %></h5>

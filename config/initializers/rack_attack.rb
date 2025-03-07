@@ -19,7 +19,7 @@ class Rack::Attack
   end
   
   # 同一IPからの連続POST制限
-  throttle('post/ip', limit: 30, period: 5.minutes) do |req|
+  throttle('post/ip', limit: 50, period: 5.minutes) do |req|
     req.ip if req.post?
   end
   

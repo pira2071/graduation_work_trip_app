@@ -69,14 +69,11 @@
               <i class="bi bi-person-circle"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-end user-menu" data-dropdown-target="menu">
-              <%= link_to "#", class: "dropdown-item" do %>
-                <i class="bi bi-person me-2"></i>名前
-              <% end %>
-              <%= link_to "#", class: "dropdown-item" do %>
-                <i class="bi bi-envelope me-2"></i>メールアドレス
-              <% end %>
-              <%= link_to "#", class: "dropdown-item" do %>
-                <i class="bi bi-key me-2"></i>パスワード
+              <div class="dropdown-header">
+                <%= current_user.name %>
+              </div>
+              <%= link_to edit_user_path(current_user), class: "dropdown-item" do %>
+                <i class="bi bi-pencil me-2"></i>プロフィール編集
               <% end %>
               <div class="dropdown-divider"></div>
               <%= link_to logout_path, data: { turbo_method: :delete }, class: "dropdown-item text-danger" do %>

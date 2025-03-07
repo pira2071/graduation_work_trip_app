@@ -28,11 +28,23 @@ $shinbashi-complement: #FFF5E8; // 新橋色の補色（非常に薄く）
   
   .card-img-top {
     height: 200px;
+    position: relative;
+    overflow: hidden;
     background-color: $shinbashi-light;
     display: flex;
     align-items: center;
     justify-content: center;
     color: $shinbashi-color;
+    padding: 0; // パディングを削除
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill; // containからfillに変更
+      max-width: none; // max-widthの制限を解除
+      max-height: none; // max-heightの制限を解除
+      margin: 0; // マージンを削除
+    }
   }
   
   .card-body {
@@ -271,13 +283,25 @@ $shinbashi-complement: #FFF5E8; // 新橋色の補色（非常に薄く）
 .travel-detail-card {
   margin-bottom: 2rem;
   border-radius: 10px;
+  position: relative;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   
   .card-img-top {
-    height: 250px;
+    height: 600px; // 400pxから600pxに変更
     background-color: $shinbashi-light;
     color: $shinbashi-color;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill; // containからfillに変更
+    }
   }
   
   .card-body {
@@ -529,6 +553,12 @@ $shinbashi-complement: #FFF5E8; // 新橋色の補色（非常に薄く）
   .travel-card {
     .card-img-top {
       height: 180px;
+    }
+  }
+
+  .travel-detail-card {
+    .card-img-top {
+      height: 400px; // モバイルではやや小さめに
     }
   }
   

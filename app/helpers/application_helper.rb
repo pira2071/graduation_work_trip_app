@@ -36,8 +36,8 @@ module ApplicationHelper
   
   # ヘッダーを表示するページのみを判定するメソッド
   def show_header?
-    # 全てのページでヘッダーを表示する
-    true
+    # TOP画面のみヘッダーを表示
+    controller_name == 'static_pages' && action_name == 'top'
   end
 
   # カテゴリに応じたバッジクラスを返すヘルパー

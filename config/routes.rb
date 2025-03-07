@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   delete '/logout', to: 'user_sessions#destroy', as: :logout
   
   # ユーザー登録関連
-  resources :users, only: %i[new create]
+  resources :users, only: %i[new create edit update]
   
   # ログイン必須のルーティング
   get 'dashboard', to: 'static_pages#dashboard'

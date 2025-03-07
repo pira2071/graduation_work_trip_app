@@ -7,6 +7,7 @@ class Travel < ApplicationRecord
   has_many :photos, dependent: :destroy
   has_many :notifications, as: :notifiable, dependent: :destroy
   has_many :travel_shares, dependent: :destroy
+  mount_uploader :thumbnail, ThumbnailUploader
 
   validates :title, presence: true
   validates :start_date, presence: true

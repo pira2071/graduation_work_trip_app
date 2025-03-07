@@ -11,8 +11,25 @@
     </div>
 
     <div class="travel-detail-card">
-      <div class="card-img-top">
-        <span class="text-muted">No Image</span>
+      <div class="card-img-top" 
+          <% if @travel.travel_members.exists?(user_id: current_user.id) %>
+            data-controller="travel-image" 
+            data-travel-image-travel-id-value="<%= @travel.id %>" 
+            data-travel-image-target="imageContainer"
+            data-action="click->travel-image#openFileDialog"
+          <% end %>
+          >
+        <% if @travel.thumbnail.present? %>
+          <%= image_tag @travel.thumbnail.detail.url, class: "img-fluid", alt: "表紙画像" %>
+        <% else %>
+          <span class="text-muted d-flex justify-content-center align-items-center h-100">
+            <% if @travel.travel_members.exists?(user_id: current_user.id) %>
+              ここをクリックして写真を添付できます。
+            <% else %>
+              表紙画像がありません
+            <% end %>
+          </span>
+        <% end %>
       </div>
       
       <div class="card-body">

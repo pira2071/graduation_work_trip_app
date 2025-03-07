@@ -59,23 +59,57 @@ class TravelsController < ApplicationController
   end
   
   def update
-    @travel = current_user.organized_travels.find(params[:id])
-    if @travel.update(travel_params)
-      # メンバーの更新処理
-      @travel.travel_members.where(role: :guest).destroy_all
-      
-      if params[:member_ids].present?
-        params[:member_ids].each do |member_id|
-          user = User.find(member_id)
-          @travel.travel_members.create(user: user, role: :guest)
-        end
-      end
-  
-      redirect_to @travel, success: t('notices.travel.updated')
+    # パラメータに応じてアクセス権限を分ける
+    if params[:travel] && (params[:travel].keys & ['title', 'start_date', 'end_date', 'member_names']).any?
+      # 基本情報の更新は幹事のみ可能
+      @travel = current_user.organized_travels.find(params[:id])
     else
-      @friends = current_user.friends
-      flash.now[:danger] = t('activerecord.errors.models.travel.update_failed')
-      render :edit, status: :unprocessable_entity
+      # サムネイルの更新はメンバーも可能
+      @travel = Travel.joins(:travel_members)
+               .where(id: params[:id], travel_members: { user_id: current_user.id })
+               .first
+      
+      # 該当するプランが見つからなかった場合
+      unless @travel
+        respond_to do |format|
+          format.html { redirect_to travels_path, alert: t('notices.travel.not_authorized') }
+          format.json { render json: { error: 'アクセス権限がありません' }, status: :forbidden }
+          format.js { head :forbidden }
+        end
+        return
+      end
+    end
+    
+    respond_to do |format|
+      if @travel.update(travel_params)
+        # AJAX (XHR) リクエストの場合
+        format.js { head :ok }
+        
+        # 通常のリクエストの場合
+        format.html do
+          # フォーム経由での更新の場合、メンバーも更新
+          if params[:member_ids].present?
+            @travel.travel_members.where(role: :guest).destroy_all
+            
+            params[:member_ids].each do |member_id|
+              user = User.find(member_id)
+              @travel.travel_members.create(user: user, role: :guest)
+            end
+          end
+          
+          redirect_to @travel, success: t('notices.travel.updated')
+        end
+        
+        # JSON形式のリクエストの場合
+        format.json { render json: { success: true } }
+      else
+        @friends = current_user.friends
+        format.html do
+          flash.now[:danger] = t('activerecord.errors.models.travel.update_failed')
+          render :edit, status: :unprocessable_entity
+        end
+        format.json { render json: { errors: @travel.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 

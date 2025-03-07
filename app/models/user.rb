@@ -11,8 +11,20 @@ class User < ApplicationRecord
   validates :password, confirmation: true, if: -> { new_record? || changes[:crypted_password] }
   validates :password_confirmation, presence: true, if: -> { new_record? || changes[:crypted_password] }
   validates :reset_password_token, uniqueness: true, allow_nil: true
-  validates :email, presence: true, uniqueness: true
-  validates :name, presence: true
+  validates :email, 
+            presence: { message: 'を入力してください' },
+            uniqueness: { message: 'はすでに使用されています' },
+            format: { 
+              with: URI::MailTo::EMAIL_REGEXP, 
+              message: 'は正しい形式で入力してください' 
+            }
+  validates :name, 
+            presence: { message: 'を入力してください' },
+            length: { 
+              minimum: 2, 
+              maximum: 50, 
+              message: 'は2〜50文字で入力してください' 
+            }
 
   has_many :requested_friendships, 
            class_name: 'Friendship',

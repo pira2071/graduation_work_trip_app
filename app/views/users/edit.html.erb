@@ -1,0 +1,35 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <h1>プロフィール編集</h1>
+    </div>
+    
+    <div class="auth-card-body">
+      <%= form_with(model: @user, local: true, class: "auth-form") do |f| %>
+        <% if @user.errors.any? %>
+          <div class="alert alert-danger">
+            <ul>
+              <% @user.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= f.label :name, 'お名前', class: 'form-label required' %>
+          <%= f.text_field :name, class: 'form-control', placeholder: '例：トリプランナー' %>
+        </div>
+
+        <div class="mb-4">
+          <%= f.label :email, 'メールアドレス', class: 'form-label required' %>
+          <%= f.email_field :email, class: 'form-control', placeholder: 'example@example.com' %>
+        </div>
+
+        <div class="d-grid mb-3">
+          <%= f.submit '更新', class: 'auth-btn btn-primary' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
