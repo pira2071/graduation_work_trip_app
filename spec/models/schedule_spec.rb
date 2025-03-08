@@ -9,7 +9,32 @@ RSpec.describe Schedule, type: :model do
     it { should validate_presence_of(:order_number) }
     it { should validate_presence_of(:day_number) }
     it { should validate_presence_of(:time_zone) }
-    it { should validate_inclusion_of(:time_zone).in_array(Schedule.time_zones.keys) }
+    
+    # enumで許可されている値のみを受け入れることを確認
+    it 'allows only valid time_zone values' do
+      valid_time_zones = %w[morning noon night]
+      schedule = build(:schedule)
+      
+      # 有効な値をテスト
+      valid_time_zones.each do |zone|
+        expect {
+          schedule.time_zone = zone
+        }.not_to raise_error
+      end
+      
+      # 検証をより基本的な方法で確認
+      schedule = build(:schedule, time_zone: nil)
+      expect(schedule).not_to be_valid
+      
+      schedule = build(:schedule, time_zone: 'morning')
+      expect(schedule).to be_valid
+      
+      # ダミーの値を設定せず、直接モデルの動作を検証
+      allow_any_instance_of(Schedule).to receive(:time_zone).and_return('invalid_value')
+      schedule = build(:schedule)
+      schedule.valid?
+      expect(schedule.errors[:time_zone]).to be_present
+    end
   end
 
   describe 'enums' do
