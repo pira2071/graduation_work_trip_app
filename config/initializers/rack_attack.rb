@@ -4,7 +4,7 @@ class Rack::Attack
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
   
   # 同一IPからのリクエスト回数制限（全般）
-  throttle('req/ip', limit: 30, period: 1.minute) do |req|
+  throttle('req/ip', limit: 100, period: 1.minute) do |req|
     req.ip
   end
   
@@ -14,12 +14,12 @@ class Rack::Attack
   end
   
   # ログイン試行の制限
-  throttle('logins/ip', limit: 3, period: 20.minutes) do |req|
+  throttle('logins/ip', limit: 30, period: 20.minutes) do |req|
     req.ip if req.path == '/login' && req.post?
   end
   
   # 同一IPからの連続POST制限
-  throttle('post/ip', limit: 50, period: 5.minutes) do |req|
+  throttle('post/ip', limit: 100, period: 5.minutes) do |req|
     req.ip if req.post?
   end
   

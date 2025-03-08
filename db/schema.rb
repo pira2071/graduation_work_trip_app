@@ -88,8 +88,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_28_024529) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "order_number"
-    t.integer "day_number"
-    t.string "time_zone"
     t.index ["travel_id"], name: "index_spots_on_travel_id"
   end
 
@@ -142,16 +140,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_28_024529) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_token_expires_at"
-    t.datetime "reset_password_email_sent_at"
-    t.integer "access_count_to_reset_password_page", default: 0
     t.string "provider"
     t.string "uid"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   add_foreign_key "friendships", "users", column: "receiver_id"

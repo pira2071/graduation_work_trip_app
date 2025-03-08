@@ -52,6 +52,12 @@ gem 'sorcery', '0.16.5'
 
 group :development, :test do
 
+  gem 'rspec-rails'
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'shoulda-matchers'
+  gem 'rails-controller-testing'
+
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
