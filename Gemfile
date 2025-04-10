@@ -1,89 +1,97 @@
+# RubyGemsをGemのソースとして指定。すべてのGemはこのリポジトリから取得される。
 source "https://rubygems.org"
 
-# Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
+# Rails 7.1.x系を使用
 gem "rails", "~> 7.1.0"
-# The modern asset pipeline for Rails [https://github.com/rails/propshaft]
+# Rails 7で導入された新しいアセットパイプライン
 gem "propshaft"
-# Use postgresql as the database for Active Record
+# PostgreSQLデータベースをActive Recordで使用するためのアダプタ
 gem "pg", "~> 1.1"
-# Use the Puma web server [https://github.com/puma/puma]
+# マルチスレッドに対応したWebサーバー。Rails公式推奨のWebサーバー
 gem "puma", ">= 5.0"
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
+# JavaScriptのモジュールをインポートマップを使って管理するためのgem。バンドラーを使わずにJSモジュールを扱える。
 gem "importmap-rails"
-# Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
+# HotwireのTurboをRailsで使うためのgem。ページの遷移を高速化しSPAのような体験を提供。
 gem "turbo-rails"
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
+# HotwireのStimulusをRailsで使うためのgem。JavaScriptを使った軽量なインタラクティブ機能を提供。
 gem "stimulus-rails"
-# Build JSON APIs with ease [https://github.com/rails/jbuilder]
+# JSON APIを簡単に構築するためのgem。Ruby構文でJSONを生成。
 gem "jbuilder"
 
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem "bcrypt", "~> 3.1.7"
-
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+# Windows環境やJRubyでタイムゾーン情報を扱うために必要なgem。
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
-# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
+# Railsのキャッシュ、ジョブキュー、Action Cableのデータベースバックエンドアダプタ。
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
-# Reduces boot times through caching; required in config/boot.rb
+# Railsの起動時間を高速化するgem。クラスのロード等を最適化。
 gem "bootsnap", require: false
 
-# Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
+# Dockerコンテナを使ったデプロイツール。本番環境へのデプロイに使用。
 gem "kamal", require: false
 
-# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
+# PumaにHTTPアセットキャッシング/圧縮とX-Sendfile高速化機能を追加。
 gem "thruster", require: false
 
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
-
-# See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
+# Rubyのデバッグツール
 gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
+# JavaScriptバンドラー（Webpackやesbuildなど）をRailsで使うためのgem。
 gem 'jsbundling-rails'
 
+# BootstrapフレームワークとSASSコンパイラをRailsで使うためのgem。
 gem 'bootstrap'
 gem 'sassc-rails'
 
+# 認証機能を実装するためのgem。
 gem 'sorcery', '0.16.5'
 
+# 開発環境とテスト環境でのみ使用するgemをグループ化。
 group :development, :test do
 
+  # RSpecテストフレームワーク
   gem 'rspec-rails'
+  # テスト用のオブジェクト生成ライブラリ
   gem 'factory_bot_rails'
+  # テスト用のダミーデータ生成ライブラリ
   gem 'faker'
+  # RSpecのマッチャーを拡張するライブラリ
   gem 'shoulda-matchers'
+  # コントローラーのテストをサポート
   gem 'rails-controller-testing'
-
-  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
+  # セキュリティ脆弱性の静的解析ツール
   gem "brakeman", require: false
-
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
+  # Rails公式のコーディングスタイルを強制するツール
   gem "rubocop-rails-omakase", require: false
 end
 
+# 開発環境でのみ使用するgemをグループ化。
 group :development do
-  # Use console on exceptions pages [https://github.com/rails/web-console]
+  # エラーページでRubyコンソールを提供するgem
   gem "web-console"
 end
 
+# テスト環境でのみ使用するgemをグループ化。
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
+  # 統合テスト用のヘッドレスブラウザ
   gem "capybara"
+  # ブラウザを使用したE2Eテスト用のドライバー
   gem "selenium-webdriver"
 end
 
+# 写真の投稿機能用。ファイルアップロード機能とそれに伴う画像処理を担当するgem。
 gem "carrierwave", "~> 3.1"
-
 gem "mini_magick", "~> 5.1"
 
+# 環境変数を.envファイルで管理するためのgem。
 gem 'dotenv-rails'
 
+# SEO対策。HTMLのメタタグを簡単に管理するためのgem。
 gem 'meta-tags'
 
+# 検索機能を簡単に実装するためのgem。
 gem 'ransack'
 
 # セキュリテイ対策用

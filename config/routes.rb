@@ -5,42 +5,34 @@ Rails.application.routes.draw do
   delete '/logout', to: 'user_sessions#destroy', as: :logout
   
   # ユーザー登録関連
-  resources :users, only: %i[new create edit update]
+  resources :users, only: [:new, :create, :edit, :update]
   
   # ログイン必須のルーティング
-  get 'dashboard', to: 'static_pages#dashboard'
+  get '/dashboard', to: 'static_pages#dashboard', as: :dashboard
 
-  # Googleログインのルーティング
-  # 認証開始のルート - POSTメソッドで設定
+  # Googleログイン関連
   post '/auth/:provider', to: lambda { |_env| [404, {}, ['Not Found']] }, as: :auth
-  # コールバックルート - GETメソッドで設定（OAuthのリダイレクトはGETで戻ってくる）
-  get '/users/auth/:provider/callback', to: 'user_sessions#google_oauth2'
+  get '/users/auth/:provider/callback', to: 'user_sessions#google_oauth2', as: :auth_callback
   
   # 旅行プラン関連
   resources :travels do
-    resources :spots do
+    # スポット関連
+    resources :spots, only: [:new, :create, :index, :show, :edit, :update, :destroy] do
       collection do
         post :register
         post :save_schedules
         post :create_notification
       end
+      
       member do
         patch :update_order
       end
     end
 
-    # スポット関連のルーティング
-    resources :spots, only: %i[new create] do
-      collection do
-        post :register
-        post :save_schedules
-      end
-    end
-
-    # レビュー用のルーティング
+    # レビュー関連
     resources :travel_reviews, only: [:create]
 
-    # 写真共有用のルーティング
+    # 写真共有関連
     resources :photos, only: [:index, :create, :destroy] do
       collection do
         get :day
@@ -48,18 +40,16 @@ Rails.application.routes.draw do
     end
   end
   
-  # ルートパス
-  root 'static_pages#top'
+  # 静的ページ関連
+  root to: 'static_pages#top'
+  get '/privacy_policy', to: 'static_pages#privacy_policy', as: :privacy_policy
+  get '/terms_of_service', to: 'static_pages#terms_of_service', as: :terms_of_service
 
-  # 利用規約とプライバシーポリシー用のルート
-  get 'privacy_policy', to: 'static_pages#privacy_policy'
-  get 'terms_of_service', to: 'static_pages#terms_of_service'
+  # お問い合わせ関連
+  get '/contact_us', to: 'contacts#new', as: :contact_us
+  post '/contact_us', to: 'contacts#create'
 
-  # お問い合わせフォーム用のルート
-  get 'contact_us', to: 'contacts#new'
-  post 'contact_us', to: 'contacts#create'
-
-  # パスワードリセット用のルート
+  # パスワードリセット関連
   resources :password_resets, only: [:new, :create, :edit, :update]
 
   # 友達管理関連
@@ -69,7 +59,7 @@ Rails.application.routes.draw do
       patch :reject
     end
   end
-  get 'friend_requests', to: 'friendships#requests', as: :friend_requests
+  get '/friend_requests', to: 'friendships#requests', as: :friend_requests
 
   # 持物リスト関連
   resources :packing_lists, only: [:index, :new, :create, :show, :destroy] do

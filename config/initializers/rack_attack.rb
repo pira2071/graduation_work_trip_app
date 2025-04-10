@@ -1,4 +1,3 @@
-# config/initializers/rack_attack.rb
 class Rack::Attack
   # キャッシュストアの設定
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new

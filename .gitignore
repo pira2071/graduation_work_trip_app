@@ -29,6 +29,8 @@
 !/tmp/storage/.keep
 
 /public/assets
+/public/uploads/photo/image
+/public/uploads/travel/thumbnail
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
