@@ -1,19 +1,19 @@
 module ApplicationHelper
   def default_meta_tags
     {
-      site: 'TriPlanner',
+      site: "TriPlanner",
       reverse: true,
-      separator: '|',
+      separator: "|",
       og: {
-        type: 'website',
-        site_name: 'TriPlanner',
-        title: 'TriPlanner - 楽して旅の計画を',
-        description: '旅行の計画をもっと簡単に。友達と共有しながら旅行計画を立てよう。',
-        image: image_url('ogp.png'),
-        url: 'http://tri-planner.com'
+        type: "website",
+        site_name: "TriPlanner",
+        title: "TriPlanner - 楽して旅の計画を",
+        description: "旅行の計画をもっと簡単に。友達と共有しながら旅行計画を立てよう。",
+        image: image_url("ogp.png"),
+        url: "http://tri-planner.com"
       },
       twitter: {
-        card: 'summary_large_image'
+        card: "summary_large_image"
       }
     }
   end
@@ -22,49 +22,49 @@ module ApplicationHelper
   def bootstrap_alert_class(flash_type)
     case flash_type.to_sym
     when :notice, :success
-      'success'
+      "success"
     when :alert, :danger, :error
-      'danger'
+      "danger"
     when :warning
-      'warning'
+      "warning"
     when :info
-      'info'
+      "info"
     else
-      'info'  # デフォルトはinfo
+      "info"  # デフォルトはinfo
     end
   end
-  
+
   # ヘッダーを表示するページのみを判定するメソッド
   def show_header?
     # TOP画面のみヘッダーを表示
-    controller_name == 'static_pages' && action_name == 'top'
+    controller_name == "static_pages" && action_name == "top"
   end
 
   # カテゴリに応じたバッジクラスを返すヘルパー
   def category_badge_class(category)
     case category.to_s
-    when 'sightseeing'
-      'bg-success'
-    when 'restaurant'
-      'bg-warning'
-    when 'hotel'
-      'bg-info'
+    when "sightseeing"
+      "bg-success"
+    when "restaurant"
+      "bg-warning"
+    when "hotel"
+      "bg-info"
     else
-      'bg-secondary'
+      "bg-secondary"
     end
   end
 
   # 時間帯によるカラークラスを返すヘルパー
   def time_zone_color(time_zone)
     case time_zone.to_s
-    when 'morning'
-      'bg-primary'
-    when 'noon'
-      'bg-warning'
-    when 'night'
-      'bg-dark'
+    when "morning"
+      "bg-primary"
+    when "noon"
+      "bg-warning"
+    when "night"
+      "bg-dark"
     else
-      'bg-light'
+      "bg-light"
     end
   end
 

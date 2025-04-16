@@ -16,7 +16,7 @@ RSpec.describe Notification, type: :model do
       it 'orders notifications by created_at in descending order' do
         # スコープの実装だけをテスト
         scope_relation = Notification.recent
-        
+
         # SQL文を検証して、ORDER BY created_at DESC が含まれていることを確認
         expect(scope_relation.to_sql).to include("ORDER BY \"notifications\".\"created_at\" DESC")
       end

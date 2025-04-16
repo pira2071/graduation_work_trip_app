@@ -5,11 +5,11 @@ class ImageUploader < CarrierWave::Uploader::Base
   storage :file
 
   # 画像のリサイズ設定
-  process resize_to_fit: [800, 800]
+  process resize_to_fit: [ 800, 800 ]
 
   # サムネイルバージョンの作成
   version :thumb do
-    process resize_to_fill: [150, 150]
+    process resize_to_fill: [ 150, 150 ]
   end
 
   def store_dir
@@ -18,7 +18,7 @@ class ImageUploader < CarrierWave::Uploader::Base
 
   # アップロード可能な拡張子を設定
   def extension_allowlist
-    %w(jpg jpeg gif png heic heif)
+    %w[jpg jpeg gif png heic heif]
   end
 
   # アップロードサイズの制限

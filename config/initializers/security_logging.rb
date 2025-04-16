@@ -9,7 +9,7 @@ module SecurityLogger
       details: details,
       timestamp: Time.current
     }
-    
+
     Rails.logger.warn "SECURITY ALERT: #{message.to_json}"
   end
 end

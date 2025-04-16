@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :spot do
     name { Faker::Address.city }
     association :travel
-    category { [:sightseeing, :restaurant, :hotel].sample }
+    category { [ :sightseeing, :restaurant, :hotel ].sample }
     lat { Faker::Address.latitude }
     lng { Faker::Address.longitude }
     sequence(:order_number) { |n| n }

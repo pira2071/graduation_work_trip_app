@@ -7,6 +7,6 @@ class CreateTravelMembers < ActiveRecord::Migration[7.1]
 
       t.timestamps
     end
-    add_index :travel_members, [:travel_id, :user_id], unique: true
+    add_index :travel_members, [ :travel_id, :user_id ], unique: true
   end
 end

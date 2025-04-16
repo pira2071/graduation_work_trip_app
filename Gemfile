@@ -39,28 +39,27 @@ gem "thruster", require: false
 gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
 # JavaScriptバンドラー（Webpackやesbuildなど）をRailsで使うためのgem。
-gem 'jsbundling-rails'
+gem "jsbundling-rails"
 
 # BootstrapフレームワークとSASSコンパイラをRailsで使うためのgem。
-gem 'bootstrap'
-gem 'sassc-rails'
+gem "bootstrap"
+gem "sassc-rails"
 
 # 認証機能を実装するためのgem。
-gem 'sorcery', '0.16.5'
+gem "sorcery", "0.16.5"
 
 # 開発環境とテスト環境でのみ使用するgemをグループ化。
 group :development, :test do
-
   # RSpecテストフレームワーク
-  gem 'rspec-rails'
+  gem "rspec-rails"
   # テスト用のオブジェクト生成ライブラリ
-  gem 'factory_bot_rails'
+  gem "factory_bot_rails"
   # テスト用のダミーデータ生成ライブラリ
-  gem 'faker'
+  gem "faker"
   # RSpecのマッチャーを拡張するライブラリ
-  gem 'shoulda-matchers'
+  gem "shoulda-matchers"
   # コントローラーのテストをサポート
-  gem 'rails-controller-testing'
+  gem "rails-controller-testing"
   # セキュリティ脆弱性の静的解析ツール
   gem "brakeman", require: false
   # Rails公式のコーディングスタイルを強制するツール
@@ -86,20 +85,20 @@ gem "carrierwave", "~> 3.1"
 gem "mini_magick", "~> 5.1"
 
 # 環境変数を.envファイルで管理するためのgem。
-gem 'dotenv-rails'
+gem "dotenv-rails"
 
 # SEO対策。HTMLのメタタグを簡単に管理するためのgem。
-gem 'meta-tags'
+gem "meta-tags"
 
 # 検索機能を簡単に実装するためのgem。
-gem 'ransack'
+gem "ransack"
 
 # セキュリテイ対策用
-gem 'rack-attack'
-gem 'sanitize'
-gem 'recaptcha'
+gem "rack-attack"
+gem "sanitize"
+gem "recaptcha"
 
 # Googleログイン用
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-google-oauth2', '~> 1.1'
-gem 'omniauth-rails_csrf_protection', '~> 1.0' # CSRF対策
+gem "omniauth", "~> 2.1"
+gem "omniauth-google-oauth2", "~> 1.1"
+gem "omniauth-rails_csrf_protection", "~> 1.0" # CSRF対策

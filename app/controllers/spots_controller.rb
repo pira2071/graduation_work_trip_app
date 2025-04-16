@@ -3,7 +3,7 @@ class SpotsController < ApplicationController
 
   before_action :set_travel
   before_action :check_member
-  
+
   def new
     @is_planner = @travel.user_id == current_user.id
     is_from_notification = params[:from_notification].present?
@@ -15,18 +15,18 @@ class SpotsController < ApplicationController
       redirect_to travel_path(@travel)
       return
     end
-    
+
     # @spotsの取得
     @spots = @travel.spots.includes(:schedule).order(:category, :order_number)
-    
+
     # @schedulesの取得
     @schedules = @travel.spots.includes(:schedule)
                        .where.not(schedules: { id: nil })
-                       .order('schedules.day_number ASC, schedules.time_zone ASC, schedules.order_number ASC')
+                       .order("schedules.day_number ASC, schedules.time_zone ASC, schedules.order_number ASC")
                        .to_a  # 明示的に配列に変換
-    
+
     @total_days = (@travel.end_date - @travel.start_date).to_i + 1
-    
+
     # JSONデータの準備
     @spots_json = @spots.map do |spot|
       {
@@ -51,7 +51,7 @@ class SpotsController < ApplicationController
 
   def register
     @travel = Travel.find(params[:travel_id])
-    
+
     # トランザクションを使用して一連の処理を保証
     ActiveRecord::Base.transaction do
       # 既存のスポットを物理削除（論理削除ではなく）
@@ -59,22 +59,22 @@ class SpotsController < ApplicationController
         name: spot_params[:name],
         category: spot_params[:category]
       ).destroy_all
-      
+
       # 新規スポットを作成
       @spot = @travel.spots.build(spot_params)
-      
+
       if @spot.save
-        render json: { 
-          success: true, 
+        render json: {
+          success: true,
           spot: @spot.as_json.merge(travel_id: @travel.id),
-          message: t('notices.spot.created')
+          message: t("notices.spot.created")
         }
       else
         raise ActiveRecord::Rollback
-        render json: { 
-          success: false, 
+        render json: {
+          success: false,
           errors: @spot.errors.full_messages,
-          message: t('activerecord.errors.models.spot.registration_failed')
+          message: t("activerecord.errors.models.spot.registration_failed")
         }, status: :unprocessable_entity
       end
     end
@@ -94,19 +94,19 @@ class SpotsController < ApplicationController
     schedules_params = params.require(:schedules).map do |schedule|
       schedule.permit(:spot_id, :day_number, :time_zone, :order_number)
     end rescue []  # パラメータが空の場合は空配列を返す
-    
+
     deleted_spot_ids = params[:deleted_spot_ids] || []
-  
+
     begin
       ActiveRecord::Base.transaction do
         # 既存のスケジュールを削除
         Schedule.where(spot_id: @travel.spot_ids).destroy_all
-  
+
         # 削除予定のスポットを削除
         if deleted_spot_ids.any?
           @travel.spots.where(id: deleted_spot_ids).destroy_all
         end
-  
+
         # 新しいスケジュールを作成（スケジュールパラメータがある場合のみ）
         if schedules_params.present?
           schedules_params.each do |schedule_param|
@@ -121,17 +121,17 @@ class SpotsController < ApplicationController
             end
           end
         end
-  
-        render json: { 
+
+        render json: {
           success: true,
-          message: t('notices.spot.schedules_saved')
+          message: t("notices.spot.schedules_saved")
         }
       end
     rescue => e
       Rails.logger.error "Schedule save error: #{e.message}\n#{e.backtrace.join("\n")}"
-      render json: { 
+      render json: {
         success: false,
-        error: e.message 
+        error: e.message
       }, status: :unprocessable_entity
     end
   end
@@ -159,7 +159,7 @@ class SpotsController < ApplicationController
 
   def create_notification
     @travel = Travel.find(params[:travel_id])
-    
+
     begin
       ActiveRecord::Base.transaction do
         @travel.travel_members.where(role: :guest).each do |member|
@@ -170,26 +170,26 @@ class SpotsController < ApplicationController
             action: params[:notification_type]
           )
         end
-        
+
         # 旅行を共有状態にマーク
         @travel.mark_as_shared!
-        
+
         # 幹事はこの通知を受け取らないが、ここで共有状態を設定する
         TravelShare.create_or_find_by!(
           travel: @travel,
           notification_type: params[:notification_type]
         )
-        
-        render json: { 
-          success: true, 
-          message: t('notices.spot.notification_sent')
+
+        render json: {
+          success: true,
+          message: t("notices.spot.notification_sent")
         }
       end
     rescue => e
       Rails.logger.error "Notification creation error: #{e.message}"
-      render json: { 
-        success: false, 
-        error: e.message 
+      render json: {
+        success: false,
+        error: e.message
       }, status: :unprocessable_entity
     end
   end
@@ -210,7 +210,7 @@ class SpotsController < ApplicationController
 
   def check_member
     unless @travel.travel_members.exists?(user_id: current_user.id)
-      redirect_to travels_path, alert: t('notices.travel.not_authorized')
+      redirect_to travels_path, alert: t("notices.travel.not_authorized")
     end
   end
 end

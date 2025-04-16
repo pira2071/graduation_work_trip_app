@@ -9,9 +9,9 @@ Bundler.require(*Rails.groups)
 module TravelApp
   class Application < Rails::Application
     config.generators do |g|
-      g.helper false #helperを生成しない
-      g.test_framework false #testファイルを生成しない
-      g.skip_routes true #ルーティングを生成しない
+      g.helper false # helperを生成しない
+      g.test_framework false # testファイルを生成しない
+      g.skip_routes true # ルーティングを生成しない
     end
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
@@ -25,25 +25,25 @@ module TravelApp
     config.i18n.default_locale = :ja
 
     # ロケールファイルのロードパスを設定
-    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.{rb,yml}').to_s]
+    config.i18n.load_path += Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}").to_s]
 
     # タイムゾーンを東京に設定
-    config.time_zone = 'Tokyo'
+    config.time_zone = "Tokyo"
 
     # セキュリティ関連のパスを自動読み込み
-    config.autoload_paths += %W(#{config.root}/app/lib)
+    config.autoload_paths += %W[#{config.root}/app/lib]
 
     # Rack::Attackミドルウェアの追加
     config.middleware.use Rack::Attack
 
     # セキュリティ関連のヘッダー強化
     config.action_dispatch.default_headers = {
-      'X-Frame-Options' => 'SAMEORIGIN',
-      'X-XSS-Protection' => '1; mode=block',
-      'X-Content-Type-Options' => 'nosniff',
-      'X-Download-Options' => 'noopen',
-      'X-Permitted-Cross-Domain-Policies' => 'none',
-      'Referrer-Policy' => 'strict-origin-when-cross-origin'
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "1; mode=block",
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
     }
 
     # Configuration for the application, engines, and railties goes here.
@@ -57,15 +57,14 @@ module TravelApp
     config.active_support.browser_compatibility = true
     # アセットパイプラインの設定を追加
     config.assets.enabled = true
-    config.assets.version = '1.0'
+    config.assets.version = "1.0"
 
     # Google Maps APIキーを設定
-    config.x.google_maps_api_key = ENV['GOOGLE_MAPS_API_KEY']
+    config.x.google_maps_api_key = ENV["GOOGLE_MAPS_API_KEY"]
 
     # 環境変数読み込み
     if Rails.env.development? || Rails.env.test? || Rails.env.production?
       Dotenv::Railtie.load
     end
-
   end
 end

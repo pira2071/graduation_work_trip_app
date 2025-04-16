@@ -3,7 +3,7 @@ FactoryBot.define do
     name { Faker::Lorem.word }
     association :packing_list
     checked { false }
-    
+
     trait :checked do
       checked { true }
     end

@@ -15,10 +15,10 @@ class NotificationsController < ApplicationController
   def mark_as_read
     notification = current_user.notifications.find(params[:id])
     notification.update(read_at: Time.current) if notification.read_at.nil?
-    
+
     # 通知のURLにリダイレクト
     redirect_to notification_url(notification)
-  end  
+  end
 
   private
 
@@ -36,9 +36,9 @@ class NotificationsController < ApplicationController
 
   def notification_url(notification)
     case notification.action
-    when 'friend_request'
+    when "friend_request"
       friendships_path
-    when 'itinerary_proposed', 'itinerary_modified', 'itinerary_confirmed', 'review_submitted'
+    when "itinerary_proposed", "itinerary_modified", "itinerary_confirmed", "review_submitted"
       new_travel_spot_path(notification.notifiable)
     else
       root_path
@@ -47,17 +47,17 @@ class NotificationsController < ApplicationController
 
   def notification_message(notification)
     case notification.action
-    when 'friend_request'
+    when "friend_request"
       "#{notification.notifiable.requester.name}さんから友達申請が届いています"
-    when 'friend_request_accepted'
+    when "friend_request_accepted"
       "#{notification.notifiable.receiver.name}さんがあなたの友達申請を承認しました"
-    when 'itinerary_proposed'
+    when "itinerary_proposed"
       "旅程表が提出されました。確認してレビューしてください。"
-    when 'itinerary_modified'
+    when "itinerary_modified"
       "旅程表が修正されました。確認してレビューしてください。"
-    when 'itinerary_confirmed'
+    when "itinerary_confirmed"
       "旅程表が確定しました。確認してください。"
-    when 'review_submitted'
+    when "review_submitted"
       "#{notification.notifiable.travel_reviews.last.user.name}さんから旅程表に対するレビューがありました。"
     else
       "旅程表が更新されました"

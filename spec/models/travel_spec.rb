@@ -16,10 +16,10 @@ RSpec.describe Travel, type: :model do
     it { should validate_presence_of(:title) }
     it { should validate_presence_of(:start_date) }
     it { should validate_presence_of(:end_date) }
-    
+
     context 'end_date_after_start_date' do
       let(:travel) { build(:travel, start_date: Date.current, end_date: Date.current - 1.day) }
-      
+
       it 'is invalid if end_date is before start_date' do
         expect(travel).not_to be_valid
         expect(travel.errors[:end_date]).to include('は開始日より後の日付にしてください')
@@ -29,17 +29,17 @@ RSpec.describe Travel, type: :model do
 
   describe '#shared?' do
     let(:travel) { create(:travel) }
-    
+
     context 'when travel has travel_shares' do
       before do
         create(:travel_share, travel: travel)
       end
-      
+
       it 'returns true' do
         expect(travel.shared?).to be_truthy
       end
     end
-    
+
     context 'when travel has no travel_shares' do
       it 'returns false' do
         expect(travel.shared?).to be_falsey
@@ -49,7 +49,7 @@ RSpec.describe Travel, type: :model do
 
   describe '#mark_as_shared!' do
     let(:travel) { create(:travel) }
-    
+
     it 'sets @is_shared to true' do
       travel.mark_as_shared!
       expect(travel.instance_variable_get(:@is_shared)).to be_truthy

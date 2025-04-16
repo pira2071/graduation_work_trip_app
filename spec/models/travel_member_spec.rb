@@ -9,14 +9,14 @@ RSpec.describe TravelMember, type: :model do
   describe 'validations' do
     let(:travel) { create(:travel) }
     let(:user) { create(:user) }
-    
+
     subject { build(:travel_member, travel: travel, user: user) }
-    
+
     it { should validate_uniqueness_of(:user_id).scoped_to(:travel_id).allow_nil }
-    
+
     context 'when user_id is not present' do
       subject { build(:travel_member, travel: travel, user: nil) }
-      
+
       it { should validate_presence_of(:name) }
     end
   end

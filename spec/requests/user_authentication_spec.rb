@@ -8,10 +8,10 @@ RSpec.describe "UserAuthentication", type: :request do
       expect(response.body).to include("ログイン")
     end
   end
-  
+
   describe "POST /login" do
     let(:user) { create(:user) }
-    
+
     context "with valid credentials" do
       it "logs in the user and redirects to root path" do
         post login_path, params: { email: user.email, password: 'password' }
@@ -20,7 +20,7 @@ RSpec.describe "UserAuthentication", type: :request do
         expect(response.body).to include("ログインしました")
       end
     end
-    
+
     context "with invalid credentials" do
       it "renders the login page with error" do
         post login_path, params: { email: user.email, password: 'wrong_password' }
@@ -29,15 +29,15 @@ RSpec.describe "UserAuthentication", type: :request do
       end
     end
   end
-  
+
   describe "DELETE /logout" do
     let(:user) { create(:user) }
-    
+
     it "logs out the user and redirects to root path" do
       login_user(user)
-      
+
       delete logout_path
-      
+
       expect(response).to redirect_to(root_path)
       follow_redirect!
       expect(response.body).to include("ログアウトしました")

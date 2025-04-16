@@ -3,7 +3,7 @@ FactoryBot.define do
     association :travel
     association :user
     role { :guest }
-    
+
     trait :organizer do
       role { :organizer }
     end

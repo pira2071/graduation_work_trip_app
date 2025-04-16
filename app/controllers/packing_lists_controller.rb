@@ -6,10 +6,10 @@ class PackingListsController < ApplicationController
   def new
     @packing_list = PackingList.new
   end
-      
+
   def create
     @packing_list = current_user.packing_lists.build(packing_list_params)
-    
+
     if @packing_list.save
       if params[:packing_list][:items].present?
         params[:packing_list][:items].each do |key, item_name|
@@ -17,8 +17,8 @@ class PackingListsController < ApplicationController
           @packing_list.packing_items.create!(name: item_name)
         end
       end
-      
-      redirect_to packing_lists_path, success: '持物リストを作成しました'
+
+      redirect_to packing_lists_path, success: "持物リストを作成しました"
     else
       render :new, status: :unprocessable_entity
     end
@@ -32,15 +32,15 @@ class PackingListsController < ApplicationController
   def destroy
     @packing_list = current_user.packing_lists.find(params[:id])
     @packing_list.destroy
-    redirect_to packing_lists_path, success: '持物リストを削除しました'
+    redirect_to packing_lists_path, success: "持物リストを削除しました"
   end
-    
+
   private
-    
+
   def packing_list_params
     params.require(:packing_list).permit(:name)
   end
-    
+
   def items_params
     params.require(:packing_list).permit(items: [])
   end

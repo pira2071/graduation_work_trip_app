@@ -8,9 +8,9 @@ class UserSessionsController < ApplicationController
     @user = login(params[:email], params[:password])
     if @user
       session[:last_access_time] = Time.current
-      redirect_to root_path, success: t('notices.session.created')
+      redirect_to root_path, success: t("notices.session.created")
     else
-      flash.now[:danger] = t('activerecord.errors.models.user.invalid_login')
+      flash.now[:danger] = t("activerecord.errors.models.user.invalid_login")
       render :new, status: :unprocessable_entity
     end
   end
@@ -18,30 +18,30 @@ class UserSessionsController < ApplicationController
   def destroy
     session[:last_access_time] = nil
     logout
-    redirect_to root_path, status: :see_other, success: t('notices.session.destroyed')
+    redirect_to root_path, status: :see_other, success: t("notices.session.destroyed")
   end
 
   def google_oauth2
-    @auth = request.env['omniauth.auth']
-    
+    @auth = request.env["omniauth.auth"]
+
     if @auth.nil?
-      redirect_to login_path, danger: t('activerecord.errors.models.user.google_auth_failed')
+      redirect_to login_path, danger: t("activerecord.errors.models.user.google_auth_failed")
       return
     end
-    
+
     @user = User.from_omniauth(@auth)
-    
+
     if @user.persisted? || @user.save
       # ログイン処理
       auto_login(@user)
       # セッションタイムアウト用の値を設定
       session[:last_access_time] = Time.current
-      redirect_to root_path, success: t('notices.session.google_login')
+      redirect_to root_path, success: t("notices.session.google_login")
     else
-      redirect_to login_path, danger: t('activerecord.errors.models.user.google_login_failed', errors: @user.errors.full_messages.join(', '))
+      redirect_to login_path, danger: t("activerecord.errors.models.user.google_login_failed", errors: @user.errors.full_messages.join(", "))
     end
   rescue => e
     Rails.logger.error "Google認証エラー: #{e.message}"
-    redirect_to login_path, danger: t('activerecord.errors.models.user.google_auth_error')
+    redirect_to login_path, danger: t("activerecord.errors.models.user.google_auth_error")
   end
 end

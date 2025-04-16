@@ -1,5 +1,5 @@
 class StaticPagesController < ApplicationController
-  skip_before_action :require_login, except: [:dashboard]  # ダッシュボードなど、ログインが必要なアクションのみrequire_login適用
+  skip_before_action :require_login, except: [ :dashboard ]  # ダッシュボードなど、ログインが必要なアクションのみrequire_login適用
 
   def top; end
 

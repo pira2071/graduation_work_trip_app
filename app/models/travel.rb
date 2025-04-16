@@ -46,6 +46,6 @@ class Travel < ApplicationRecord
 
   # 既存のメンバーの名前を、で区切った文字列で返すメソッド
   def member_names_string
-    travel_members.where(role: :guest).pluck(:name).join('、')
+    travel_members.where(role: :guest).pluck(:name).join("、")
   end
 end

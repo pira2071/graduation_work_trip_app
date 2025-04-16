@@ -9,12 +9,12 @@ class TravelReviewsController < ApplicationController
       Notification.create!(
         recipient: @travel.user,  # 幹事（travel.userが幹事）
         notifiable: @travel,
-        action: 'review_submitted'
+        action: "review_submitted"
       )
 
-      redirect_to new_travel_spot_path(@travel), notice: 'レビューを投稿しました'
+      redirect_to new_travel_spot_path(@travel), notice: "レビューを投稿しました"
     else
-      redirect_to new_travel_spot_path(@travel), alert: 'レビューの投稿に失敗しました'
+      redirect_to new_travel_spot_path(@travel), alert: "レビューの投稿に失敗しました"
     end
   end
 
